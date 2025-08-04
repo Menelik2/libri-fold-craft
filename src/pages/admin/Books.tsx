@@ -90,6 +90,15 @@ const Books = () => {
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState('');
+  const [isAddBookDialogOpen, setIsAddBookDialogOpen] = useState(false);
+  const [bookFormData, setBookFormData] = useState({
+    title: '',
+    author: '',
+    category: 'poetry',
+    year: new Date().getFullYear(),
+    description: '',
+    filePath: ''
+  });
 
   // Filter books based on category, search term, and year
   const filteredBooks = books.filter(book => {
@@ -151,6 +160,34 @@ const Books = () => {
     setIsCommentDialogOpen(true);
   };
 
+  const addBook = () => {
+    if (!bookFormData.title.trim() || !bookFormData.author.trim()) return;
+    
+    const newBook = {
+      id: Date.now(),
+      ...bookFormData,
+      comments: []
+    };
+    
+    setBooks(prev => [...prev, newBook]);
+    
+    setBookFormData({
+      title: '',
+      author: '',
+      category: 'poetry',
+      year: new Date().getFullYear(),
+      description: '',
+      filePath: ''
+    });
+    
+    setIsAddBookDialogOpen(false);
+    
+    toast({
+      title: "Book Added",
+      description: "New book has been added to the library successfully.",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -163,7 +200,7 @@ const Books = () => {
             {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
           </p>
         </div>
-        <Button onClick={() => navigate('/admin/books/new')} className="gap-2">
+        <Button onClick={() => setIsAddBookDialogOpen(true)} className="gap-2">
           <Plus className="h-4 w-4" />
           Add New Book
         </Button>
@@ -336,6 +373,121 @@ const Books = () => {
                   setIsCommentDialogOpen(false);
                   setNewComment('');
                   setSelectedBookId(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Book Dialog */}
+      <Dialog open={isAddBookDialogOpen} onOpenChange={setIsAddBookDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add New Book</DialogTitle>
+            <DialogDescription>
+              Add a new book to the library with all necessary details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input
+                id="title"
+                value={bookFormData.title}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter book title"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="author">Author</Label>
+              <Input
+                id="author"
+                value={bookFormData.author}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, author: e.target.value }))}
+                placeholder="Enter author name"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select value={bookFormData.category} onValueChange={(value) => setBookFormData(prev => ({ ...prev, category: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="poetry">Poetry</SelectItem>
+                    <SelectItem value="tradition">Tradition</SelectItem>
+                    <SelectItem value="reading">Reading</SelectItem>
+                    <SelectItem value="drama">Drama</SelectItem>
+                    <SelectItem value="folding">Folding</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Input
+                  id="year"
+                  type="number"
+                  value={bookFormData.year}
+                  onChange={(e) => setBookFormData(prev => ({ ...prev, year: parseInt(e.target.value) || new Date().getFullYear() }))}
+                  placeholder="Publication year"
+                  min="1900"
+                  max="2030"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={bookFormData.description}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter book description"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="filePath">File Path</Label>
+              <Input
+                id="filePath"
+                value={bookFormData.filePath}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, filePath: e.target.value }))}
+                placeholder="Enter file path (e.g., /books/poetry/book.pdf)"
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={addBook} 
+                className="flex-1"
+                disabled={!bookFormData.title.trim() || !bookFormData.author.trim()}
+              >
+                Add Book
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsAddBookDialogOpen(false);
+                  setBookFormData({
+                    title: '',
+                    author: '',
+                    category: 'poetry',
+                    year: new Date().getFullYear(),
+                    description: '',
+                    filePath: ''
+                  });
                 }}
               >
                 Cancel
