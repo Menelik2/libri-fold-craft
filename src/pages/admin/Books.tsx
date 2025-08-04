@@ -4,8 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { BookOpen, Calendar, Edit, Plus, Search, Trash2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { BookOpen, Calendar, Edit, Plus, Search, Trash2, MessageSquare } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from '@/hooks/use-toast';
 
 // Mock data - in a real app, this would come from your database
 const mockBooks = [
@@ -16,7 +20,11 @@ const mockBooks = [
     category: "poetry",
     year: 2023,
     description: "A comprehensive collection of Emily Dickinson's poetry",
-    filePath: "/books/poetry/emily-dickinson.pdf"
+    filePath: "/books/poetry/emily-dickinson.pdf",
+    comments: [
+      { id: 1, text: "Excellent collection for poetry students", admin: "Admin", date: "2024-01-15" },
+      { id: 2, text: "Recommended for advanced literature courses", admin: "Admin", date: "2024-01-20" }
+    ]
   },
   {
     id: 2,
@@ -25,7 +33,10 @@ const mockBooks = [
     category: "tradition",
     year: 2022,
     description: "Exploring ancient Greek cultural traditions",
-    filePath: "/books/tradition/greek-traditions.pdf"
+    filePath: "/books/tradition/greek-traditions.pdf",
+    comments: [
+      { id: 3, text: "Great resource for cultural studies", admin: "Admin", date: "2024-01-10" }
+    ]
   },
   {
     id: 3,
@@ -34,7 +45,8 @@ const mockBooks = [
     category: "reading",
     year: 2024,
     description: "Contemporary literature analysis and reviews",
-    filePath: "/books/reading/modern-lit.pdf"
+    filePath: "/books/reading/modern-lit.pdf",
+    comments: []
   },
   {
     id: 4,
@@ -43,7 +55,10 @@ const mockBooks = [
     category: "drama",
     year: 2023,
     description: "Collection of Shakespeare's most famous dramatic works",
-    filePath: "/books/drama/shakespeare.pdf"
+    filePath: "/books/drama/shakespeare.pdf",
+    comments: [
+      { id: 4, text: "Essential reading for drama students", admin: "Admin", date: "2024-02-01" }
+    ]
   },
   {
     id: 5,
@@ -52,7 +67,8 @@ const mockBooks = [
     category: "folding",
     year: 2024,
     description: "Traditional and modern paper folding techniques",
-    filePath: "/books/folding/origami-art.pdf"
+    filePath: "/books/folding/origami-art.pdf",
+    comments: []
   }
 ];
 
@@ -67,12 +83,16 @@ const categoryColors = {
 const Books = () => {
   const navigate = useNavigate();
   const { category } = useParams();
+  const [books, setBooks] = useState(mockBooks);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
+  const [newComment, setNewComment] = useState('');
 
   // Filter books based on category, search term, and year
-  const filteredBooks = mockBooks.filter(book => {
+  const filteredBooks = books.filter(book => {
     const matchesCategory = !category || category === 'all' || book.category === category;
     const matchesSearch = book.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          book.author.toLowerCase().includes(searchTerm.toLowerCase());
@@ -94,6 +114,41 @@ const Books = () => {
       folding: 'Folding'
     };
     return categoryNames[cat] || cat;
+  };
+
+  const addComment = () => {
+    if (!newComment.trim() || !selectedBookId) return;
+    
+    setBooks(prev => prev.map(book => 
+      book.id === selectedBookId 
+        ? {
+            ...book,
+            comments: [
+              ...book.comments,
+              {
+                id: Date.now(),
+                text: newComment,
+                admin: "Admin",
+                date: new Date().toISOString().split('T')[0]
+              }
+            ]
+          }
+        : book
+    ));
+    
+    setNewComment('');
+    setIsCommentDialogOpen(false);
+    setSelectedBookId(null);
+    
+    toast({
+      title: "Comment Added",
+      description: "Your feedback has been added to the book.",
+    });
+  };
+
+  const openCommentDialog = (bookId: number) => {
+    setSelectedBookId(bookId);
+    setIsCommentDialogOpen(true);
   };
 
   return (
@@ -165,6 +220,31 @@ const Books = () => {
                 {book.description}
               </p>
               
+              {/* Comments Display */}
+              {book.comments.length > 0 && (
+                <div className="mb-3 p-2 bg-muted/30 rounded-md">
+                  <div className="flex items-center gap-1 mb-2">
+                    <MessageSquare className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground font-medium">
+                      Admin Feedback ({book.comments.length})
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {book.comments.slice(0, 2).map((comment) => (
+                      <div key={comment.id} className="text-xs text-muted-foreground">
+                        <span className="font-medium">"{comment.text}"</span>
+                        <span className="text-xs opacity-70 ml-1">- {comment.date}</span>
+                      </div>
+                    ))}
+                    {book.comments.length > 2 && (
+                      <div className="text-xs text-muted-foreground opacity-70">
+                        +{book.comments.length - 2} more comments
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
@@ -172,6 +252,14 @@ const Books = () => {
                 </div>
                 
                 <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => openCommentDialog(book.id)}
+                    title="Add Comment"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
                   <Button size="sm" variant="outline">
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -210,6 +298,52 @@ const Books = () => {
           </Button>
         </div>
       )}
+
+      {/* Comment Dialog */}
+      <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Add Admin Feedback</DialogTitle>
+            <DialogDescription>
+              Add your feedback or comment for this book. This will be visible to other admins and users.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="comment">Your Feedback</Label>
+              <Textarea
+                id="comment"
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Enter your feedback or comment about this book..."
+                rows={4}
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={addComment} 
+                className="flex-1"
+                disabled={!newComment.trim()}
+              >
+                Add Feedback
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsCommentDialogOpen(false);
+                  setNewComment('');
+                  setSelectedBookId(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
