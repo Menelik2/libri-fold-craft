@@ -175,7 +175,12 @@ const Books = () => {
                   <Button size="sm" variant="outline">
                     <Edit className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => window.open(book.filePath, '_blank')}
+                    title="Open PDF"
+                  >
                     <BookOpen className="h-4 w-4" />
                   </Button>
                   <Button size="sm" variant="outline" className="text-destructive hover:text-destructive">
