@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import AdminLayout from "./pages/admin/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Books from "./pages/admin/Books";
+import Todos from "./pages/admin/Todos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,8 @@ const App = () => (
               <Route index element={<Dashboard />} />
               <Route path="books" element={<Books />} />
               <Route path="books/:category" element={<Books />} />
+              <Route path="todos" element={<Todos />} />
+              <Route path="todos/:category" element={<Todos />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookOpen, Calendar, FolderOpen, Home, LogOut, Settings, Users } from "lucide-react";
+import { BookOpen, Calendar, FolderOpen, Home, LogOut, Settings, Users, CheckSquare } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -24,6 +24,15 @@ const categories = [
   { title: "Reading", url: "/admin/books/reading", icon: BookOpen, category: "reading" },
   { title: "Drama", url: "/admin/books/drama", icon: BookOpen, category: "drama" },
   { title: "Folding", url: "/admin/books/folding", icon: FolderOpen, category: "folding" },
+];
+
+const todoCategories = [
+  { title: "All Todos", url: "/admin/todos", icon: CheckSquare, category: "all" },
+  { title: "Poetry Plans", url: "/admin/todos/poetry", icon: CheckSquare, category: "poetry" },
+  { title: "Tradition Plans", url: "/admin/todos/tradition", icon: CheckSquare, category: "tradition" },
+  { title: "Reading Plans", url: "/admin/todos/reading", icon: CheckSquare, category: "reading" },
+  { title: "Drama Plans", url: "/admin/todos/drama", icon: CheckSquare, category: "drama" },
+  { title: "Folding Plans", url: "/admin/todos/folding", icon: CheckSquare, category: "folding" },
 ];
 
 const mainNavItems = [
@@ -90,6 +99,25 @@ export function AdminSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {categories.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavCls}>
+                      <item.icon className="h-4 w-4" />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Annual Arts Plan */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Annual Arts Plan</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {todoCategories.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavCls}>
