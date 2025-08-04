@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface Todo {
   id: number;
@@ -312,77 +313,67 @@ const Todos = () => {
         </Select>
       </div>
 
-      {/* Todos Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredTodos.map((todo) => (
-          <Card key={todo.id} className={`hover:shadow-md transition-shadow ${todo.completed ? 'opacity-75' : ''}`}>
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Button
+      {/* Todos Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40px]"></TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Place</TableHead>
+              <TableHead className="w-[100px]">Examination</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredTodos.map((todo) => (
+              <TableRow key={todo.id} className={todo.completed ? 'opacity-60' : ''}>
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleComplete(todo.id)}
+                    className="p-0 h-auto"
+                  >
+                    {todo.completed ? (
+                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <Circle className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TableCell>
+                <TableCell className={`font-medium ${todo.completed ? 'line-through text-muted-foreground' : ''}`}>
+                  {todo.name}
+                </TableCell>
+                <TableCell>{todo.dates}</TableCell>
+                <TableCell>{todo.place}</TableCell>
+                <TableCell>
+                  {todo.completed ? '✓' : ''}
+                </TableCell>
+                <TableCell>
+                  <div className="flex gap-1">
+                    <Button 
+                      size="sm" 
                       variant="ghost"
-                      size="sm"
-                      onClick={() => toggleComplete(todo.id)}
-                      className="p-0 h-auto"
+                      onClick={() => openEditDialog(todo)}
                     >
-                      {todo.completed ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                      ) : (
-                        <Circle className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      <Edit className="h-4 w-4" />
                     </Button>
-                    <CardTitle className={`text-lg line-clamp-2 ${todo.completed ? 'line-through text-muted-foreground' : ''}`}>
-                      {todo.name}
-                    </CardTitle>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => deleteTodo(todo.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
-                </div>
-                <Badge 
-                  variant="secondary" 
-                  className={categoryColors[todo.category as keyof typeof categoryColors]}
-                >
-                  {todo.category}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{todo.dates}</span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <span>{todo.place}</span>
-                </div>
-                
-                <div className="flex items-start gap-2 text-sm">
-                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
-                  <span className="line-clamp-2">{todo.examination}</span>
-                </div>
-              </div>
-              
-              <div className="flex gap-2 mt-4">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  onClick={() => openEditDialog(todo)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => deleteTodo(todo.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Empty State */}
