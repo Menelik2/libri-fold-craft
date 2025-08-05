@@ -92,8 +92,10 @@ const Books = () => {
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState('');
   const [isAddBookDialogOpen, setIsAddBookDialogOpen] = useState(false);
+  const [isEditBookDialogOpen, setIsEditBookDialogOpen] = useState(false);
   const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
   const [selectedPDFBook, setSelectedPDFBook] = useState<any>(null);
+  const [editingBook, setEditingBook] = useState<any>(null);
   const [bookFormData, setBookFormData] = useState({
     title: '',
     author: '',
@@ -166,6 +168,56 @@ const Books = () => {
   const openPDFViewer = (book: any) => {
     setSelectedPDFBook(book);
     setIsPDFViewerOpen(true);
+  };
+
+  const openEditDialog = (book: any) => {
+    setEditingBook(book);
+    setBookFormData({
+      title: book.title,
+      author: book.author,
+      category: book.category,
+      year: book.year,
+      description: book.description,
+      filePath: book.filePath
+    });
+    setIsEditBookDialogOpen(true);
+  };
+
+  const editBook = () => {
+    if (!bookFormData.title.trim() || !bookFormData.author.trim() || !editingBook) return;
+    
+    setBooks(prev => prev.map(book => 
+      book.id === editingBook.id 
+        ? { ...book, ...bookFormData }
+        : book
+    ));
+    
+    setBookFormData({
+      title: '',
+      author: '',
+      category: 'poetry',
+      year: new Date().getFullYear(),
+      description: '',
+      filePath: ''
+    });
+    
+    setIsEditBookDialogOpen(false);
+    setEditingBook(null);
+    
+    toast({
+      title: "Book Updated",
+      description: "Book information has been updated successfully.",
+    });
+  };
+
+  const deleteBook = (bookId: number) => {
+    setBooks(prev => prev.filter(book => book.id !== bookId));
+    
+    toast({
+      title: "Book Deleted",
+      description: "The book has been removed from the library.",
+      variant: "destructive"
+    });
   };
 
   const addBook = () => {
@@ -305,7 +357,12 @@ const Books = () => {
                   >
                     <MessageSquare className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => openEditDialog(book)}
+                    title="Edit Book"
+                  >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button 
@@ -316,7 +373,13 @@ const Books = () => {
                   >
                     <BookOpen className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline" className="text-destructive hover:text-destructive">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => deleteBook(book.id)}
+                    title="Delete Book"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -488,6 +551,122 @@ const Books = () => {
                 variant="outline" 
                 onClick={() => {
                   setIsAddBookDialogOpen(false);
+                  setBookFormData({
+                    title: '',
+                    author: '',
+                    category: 'poetry',
+                    year: new Date().getFullYear(),
+                    description: '',
+                    filePath: ''
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Book Dialog */}
+      <Dialog open={isEditBookDialogOpen} onOpenChange={setIsEditBookDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Book</DialogTitle>
+            <DialogDescription>
+              Update book information and details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-title">Title</Label>
+              <Input
+                id="edit-title"
+                value={bookFormData.title}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter book title"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-author">Author</Label>
+              <Input
+                id="edit-author"
+                value={bookFormData.author}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, author: e.target.value }))}
+                placeholder="Enter author name"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-category">Category</Label>
+                <Select value={bookFormData.category} onValueChange={(value) => setBookFormData(prev => ({ ...prev, category: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="poetry">Poetry</SelectItem>
+                    <SelectItem value="tradition">Tradition</SelectItem>
+                    <SelectItem value="reading">Reading</SelectItem>
+                    <SelectItem value="drama">Drama</SelectItem>
+                    <SelectItem value="folding">Folding</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-year">Year</Label>
+                <Input
+                  id="edit-year"
+                  type="number"
+                  value={bookFormData.year}
+                  onChange={(e) => setBookFormData(prev => ({ ...prev, year: parseInt(e.target.value) || new Date().getFullYear() }))}
+                  placeholder="Publication year"
+                  min="1900"
+                  max="2030"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={bookFormData.description}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter book description"
+                rows={3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-filePath">File Path</Label>
+              <Input
+                id="edit-filePath"
+                value={bookFormData.filePath}
+                onChange={(e) => setBookFormData(prev => ({ ...prev, filePath: e.target.value }))}
+                placeholder="Enter file path (e.g., /books/poetry/book.pdf)"
+              />
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={editBook} 
+                className="flex-1"
+                disabled={!bookFormData.title.trim() || !bookFormData.author.trim()}
+              >
+                Update Book
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setIsEditBookDialogOpen(false);
+                  setEditingBook(null);
                   setBookFormData({
                     title: '',
                     author: '',
