@@ -39,8 +39,7 @@ const Index = () => {
           <h2 className="text-5xl font-bold tracking-tight mb-6">የባህርዳር ፈ/ገ/ቅ/ጊዮርጊስ ካ/ሰ/ት/ ቤት 
 የማነ ጥበብ ዝግጅት ክፍል </h2>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            A comprehensive local application for organizing and managing your collection of 
-            literary works including poetry, traditional texts, drama, and folding materials.
+           ግጥሞችን፣ ወግ ፣ መነባነብ ፤ ጽሑፎችን፣ ድራማዎችን እና መጣጥፎች ጨምሮ የእርስዎን የስነ-ጽሁፍ ስራዎች ስብስብ ለማደራጀት እና ለማስተዳደር አጠቃላይ የሆነ መተግበሪያ።
           </p>
           {!isAuthenticated && <Button size="lg" onClick={() => navigate('/login')} className="gap-2">
               <Shield className="h-5 w-5" />
