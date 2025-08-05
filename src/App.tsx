@@ -12,6 +12,7 @@ import Dashboard from "./pages/admin/Dashboard";
 import Books from "./pages/admin/Books";
 import Todos from "./pages/admin/Todos";
 import Settings from "./pages/admin/Settings";
+import YearlyView from "./pages/admin/YearlyView";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="books/:category" element={<Books />} />
               <Route path="todos" element={<Todos />} />
               <Route path="todos/:category" element={<Todos />} />
+              <Route path="yearly" element={<YearlyView />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
