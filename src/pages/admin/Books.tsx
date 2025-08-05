@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { BookOpen, Calendar, Edit, Plus, Search, Trash2, MessageSquare } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
+import PDFViewer from '@/components/PDFViewer';
 
 // Mock data - in a real app, this would come from your database
 const mockBooks = [
@@ -91,6 +92,8 @@ const Books = () => {
   const [selectedBookId, setSelectedBookId] = useState<number | null>(null);
   const [newComment, setNewComment] = useState('');
   const [isAddBookDialogOpen, setIsAddBookDialogOpen] = useState(false);
+  const [isPDFViewerOpen, setIsPDFViewerOpen] = useState(false);
+  const [selectedPDFBook, setSelectedPDFBook] = useState<any>(null);
   const [bookFormData, setBookFormData] = useState({
     title: '',
     author: '',
@@ -158,6 +161,11 @@ const Books = () => {
   const openCommentDialog = (bookId: number) => {
     setSelectedBookId(bookId);
     setIsCommentDialogOpen(true);
+  };
+
+  const openPDFViewer = (book: any) => {
+    setSelectedPDFBook(book);
+    setIsPDFViewerOpen(true);
   };
 
   const addBook = () => {
@@ -303,7 +311,7 @@ const Books = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    onClick={() => window.open(book.filePath, '_blank')}
+                    onClick={() => openPDFViewer(book)}
                     title="Open PDF"
                   >
                     <BookOpen className="h-4 w-4" />
@@ -496,6 +504,19 @@ const Books = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* PDF Viewer */}
+      {selectedPDFBook && (
+        <PDFViewer
+          isOpen={isPDFViewerOpen}
+          onClose={() => {
+            setIsPDFViewerOpen(false);
+            setSelectedPDFBook(null);
+          }}
+          pdfUrl={selectedPDFBook.filePath}
+          title={selectedPDFBook.title}
+        />
+      )}
     </div>
   );
 };
