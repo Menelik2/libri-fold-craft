@@ -638,30 +638,25 @@ const Todos = () => {
 
       {/* Official Form Table */}
       <div className="border-2 border-black dark:border-gray-300 overflow-x-auto">
-        <table className="w-full border-collapse min-w-[1400px]">
+        <table className="w-full border-collapse min-w-[1600px]">
           <thead>
-            <tr className="bg-yellow-200 dark:bg-yellow-800">
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12">No</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]">detailed task</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Measure</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Quantity</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">Who will we work with?</th>
+            <tr className="bg-white dark:bg-card">
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12" rowSpan={2}>No</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]" rowSpan={2}>detailed task</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Measure</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Quantity</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Who will we work with?</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>1st quarter</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>2nd quarter</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>3rd quarter</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">The budget requested by the department</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">Approved budget</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Cost</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Income</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-16">Actions</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>The budget requested by the department</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>Approved budget</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Cost</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Income</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-16" rowSpan={2}>Actions</th>
             </tr>
             <tr className="bg-yellow-200 dark:bg-yellow-800">
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
               <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
               <th className="border border-black dark:border-gray-300 p-1 text-xs">August</th>
               <th className="border border-black dark:border-gray-300 p-1 text-xs">September</th>
@@ -674,11 +669,6 @@ const Todos = () => {
               <th className="border border-black dark:border-gray-300 p-1 text-xs">April</th>
               <th className="border border-black dark:border-gray-300 p-1 text-xs">May</th>
               <th className="border border-black dark:border-gray-300 p-1 text-xs">June</th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
-              <th className="border border-black dark:border-gray-300 p-1"></th>
             </tr>
           </thead>
           <tbody>
