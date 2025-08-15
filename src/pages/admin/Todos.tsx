@@ -185,102 +185,130 @@ const Todos = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Annual Arts Plan - {getCategoryDisplayName(category || 'all')}
-          </h1>
-          <p className="text-muted-foreground">
-            {filteredTodos.length} {filteredTodos.length === 1 ? 'item' : 'items'} found
-          </p>
+    <div className="max-w-7xl mx-auto p-6 bg-white dark:bg-card min-h-screen">
+      {/* Document Header */}
+      <div className="border-2 border-black dark:border-gray-300 p-6 mb-6 bg-gray-50 dark:bg-card">
+        <div className="text-center mb-4">
+          <h1 className="text-xl font-bold mb-2">የባህርዳር ፈ/ገ/ቅ/ጊዮርጊስ ካ/ሰ/ት/ ቤት</h1>
+          <h2 className="text-lg font-semibold">የዓመታዊ የማነ ጥበብ ዝግጅት ሰንጠረዥ</h2>
+          <p className="text-sm mt-2">{getCategoryDisplayName(category || 'all')} - {new Date().getFullYear()}</p>
+        </div>
+        
+        <div className="flex justify-between text-sm">
+          <div>ዓመት: ____________</div>
+          <div>ቀን: {new Date().toLocaleDateString()}</div>
+          <div>ገጽ: 1 ከ 1</div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="ፈልግ..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="ሁኔታ" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">ሁሉም</SelectItem>
+              <SelectItem value="pending">በመጠባበቅ</SelectItem>
+              <SelectItem value="completed">የተጠናቀቀ</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Add Arts Plan Item
+              አዲስ ዝግጅት ጨምር
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>
-                {editingTodo ? 'Edit Arts Plan Item' : 'Add New Arts Plan Item'}
+                {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
               </DialogTitle>
               <DialogDescription>
-                Create a new item for your Annual Arts Plan with all necessary details.
+                የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
               </DialogDescription>
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">የዝግጅት ስም</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter event or activity name"
+                  placeholder="የዝግጅቱን ስም ያስገቡ"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="dates">Dates</Label>
+                <Label htmlFor="dates">ቀናት</Label>
                 <Input
                   id="dates"
                   value={formData.dates}
                   onChange={(e) => setFormData(prev => ({ ...prev, dates: e.target.value }))}
-                  placeholder="e.g., 2024-03-15 to 2024-03-20"
+                  placeholder="ምሳሌ: 2024-03-15 እስከ 2024-03-20"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="place">Place</Label>
+                <Label htmlFor="place">ስፍራ</Label>
                 <Input
                   id="place"
                   value={formData.place}
                   onChange={(e) => setFormData(prev => ({ ...prev, place: e.target.value }))}
-                  placeholder="Enter venue or location"
+                  placeholder="የዝግጅቱን ቦታ ያስገቡ"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="examination">Examination</Label>
+                <Label htmlFor="examination">ፈተና</Label>
                 <Textarea
                   id="examination"
                   value={formData.examination}
                   onChange={(e) => setFormData(prev => ({ ...prev, examination: e.target.value }))}
-                  placeholder="Describe the examination or assessment details"
+                  placeholder="የፈተናው ዝርዝር ይግለጹ"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">ምድብ</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="ምድብ ይምረጡ" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="poetry">Poetry</SelectItem>
-                    <SelectItem value="tradition">Tradition</SelectItem>
-                    <SelectItem value="reading">Reading</SelectItem>
-                    <SelectItem value="drama">Drama</SelectItem>
-                    <SelectItem value="folding">Folding</SelectItem>
+                    <SelectItem value="poetry">ግጥም</SelectItem>
+                    <SelectItem value="tradition">ወግ</SelectItem>
+                    <SelectItem value="reading">ንባብ</SelectItem>
+                    <SelectItem value="drama">ድራማ</SelectItem>
+                    <SelectItem value="folding">መታጠፊያ</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="flex-1">
-                  {editingTodo ? 'Update Item' : 'Add Item'}
+                  {editingTodo ? 'አዘምን' : 'ጨምር'}
                 </Button>
                 <Button type="button" variant="outline" onClick={closeDialog}>
-                  Cancel
+                  ተወው
                 </Button>
               </div>
             </form>
@@ -288,92 +316,112 @@ const Todos = () => {
         </Dialog>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name or place..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Todos Table */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[40px]"></TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Place</TableHead>
-              <TableHead className="w-[100px]">Examination</TableHead>
-              <TableHead className="w-[100px]">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredTodos.map((todo) => (
-              <TableRow key={todo.id} className={todo.completed ? 'opacity-60' : ''}>
-                <TableCell>
+      {/* Official Form Table */}
+      <div className="border-2 border-black dark:border-gray-300">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-yellow-200 dark:bg-yellow-800">
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12">ተ.ቁ</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium">የዝግጅት ስም</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">መጀመሪያ ቀን</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ማለቂያ ቀን</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ስፍራ</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ሁኔታ</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ፈተና</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">ዕርማት</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTodos.map((todo, index) => (
+              <tr key={todo.id} className={`${todo.completed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-white dark:bg-card'} hover:bg-gray-50 dark:hover:bg-card`}>
+                <td className="border border-black dark:border-gray-300 p-2 text-center text-sm font-medium">
+                  {index + 1}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm">
+                  <div className={todo.completed ? 'line-through text-muted-foreground' : ''}>
+                    {todo.name}
+                  </div>
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.dates.split(' to ')[0] || todo.dates.split(' እስከ ')[0] || todo.dates}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.dates.split(' to ')[1] || todo.dates.split(' እስከ ')[1] || ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm">
+                  {todo.place}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleComplete(todo.id)}
-                    className="p-0 h-auto"
+                    className="p-1 h-auto"
                   >
                     {todo.completed ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
                     ) : (
-                      <Circle className="h-5 w-5 text-muted-foreground" />
+                      <Circle className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
-                </TableCell>
-                <TableCell className={`font-medium ${todo.completed ? 'line-through text-muted-foreground' : ''}`}>
-                  {todo.name}
-                </TableCell>
-                <TableCell>{todo.dates}</TableCell>
-                <TableCell>{todo.place}</TableCell>
-                <TableCell>
-                  {todo.completed ? '✓' : ''}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.completed ? '✓' : '•'}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2">
+                  <div className="flex gap-1 justify-center">
                     <Button 
                       size="sm" 
                       variant="ghost"
                       onClick={() => openEditDialog(todo)}
+                      className="p-1 h-auto"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-3 w-3" />
                     </Button>
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive p-1 h-auto"
                       onClick={() => deleteTodo(todo.id)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+            
+            {/* Empty rows to maintain form structure */}
+            {Array.from({ length: Math.max(0, 10 - filteredTodos.length) }).map((_, index) => (
+              <tr key={`empty-${index}`} className="bg-white dark:bg-card">
+                <td className="border border-black dark:border-gray-300 p-2 text-center text-sm">
+                  {filteredTodos.length + index + 1}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Signature Section */}
+      <div className="mt-8 grid grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <p className="font-medium">የዝግጅት ኃላፊ ፊርማ፡-</p>
+          <div className="border-b border-black dark:border-gray-300 h-12"></div>
+          <p className="text-sm">ስም፡ _____________________</p>
+        </div>
+        <div className="space-y-4">
+          <p className="font-medium">የእይታ ኃላፊ ፊርማ፡-</p>
+          <div className="border-b border-black dark:border-gray-300 h-12"></div>
+          <p className="text-sm">ስም፡ _____________________</p>
+        </div>
       </div>
 
       {/* Empty State */}
