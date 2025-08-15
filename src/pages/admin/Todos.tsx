@@ -11,13 +11,38 @@ import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, S
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Todo {
   id: number;
-  name: string;
-  dates: string;
-  place: string;
-  examination: string;
+  detailedTask: string;
+  measure: string;
+  quantity: string;
+  workWith: string;
+  firstQuarter: {
+    july: boolean;
+    august: boolean;
+    september: boolean;
+  };
+  secondQuarter: {
+    october: boolean;
+    november: boolean;
+    december: boolean;
+  };
+  thirdQuarter: {
+    january: boolean;
+    february: boolean;
+    march: boolean;
+  };
+  fourthQuarter: {
+    april: boolean;
+    may: boolean;
+    june: boolean;
+  };
+  budgetRequested: string;
+  approvedBudget: string;
+  cost: string;
+  income: string;
   category: string;
   completed: boolean;
   createdAt: string;
@@ -27,30 +52,54 @@ interface Todo {
 const mockTodos: Todo[] = [
   {
     id: 1,
-    name: "Poetry Workshop Preparation",
-    dates: "2024-03-15 to 2024-03-20",
-    place: "Central Library",
-    examination: "Poetry analysis and creative writing assessment",
+    detailedTask: "Poetry Workshop Preparation",
+    measure: "Workshop sessions",
+    quantity: "5 sessions",
+    workWith: "Central Library Staff",
+    firstQuarter: { july: true, august: false, september: true },
+    secondQuarter: { october: false, november: false, december: false },
+    thirdQuarter: { january: false, february: false, march: false },
+    fourthQuarter: { april: false, may: false, june: false },
+    budgetRequested: "15,000",
+    approvedBudget: "12,000",
+    cost: "10,500",
+    income: "0",
     category: "poetry",
     completed: false,
     createdAt: "2024-01-15"
   },
   {
     id: 2,
-    name: "Traditional Arts Exhibition",
-    dates: "2024-04-10 to 2024-04-15",
-    place: "Cultural Center",
-    examination: "Traditional arts knowledge test",
+    detailedTask: "Traditional Arts Exhibition",
+    measure: "Exhibition days",
+    quantity: "10 days",
+    workWith: "Cultural Center",
+    firstQuarter: { july: false, august: false, september: false },
+    secondQuarter: { october: true, november: true, december: false },
+    thirdQuarter: { january: false, february: false, march: false },
+    fourthQuarter: { april: false, may: false, june: false },
+    budgetRequested: "25,000",
+    approvedBudget: "20,000",
+    cost: "18,000",
+    income: "5,000",
     category: "tradition",
     completed: true,
     createdAt: "2024-01-20"
   },
   {
     id: 3,
-    name: "Reading Comprehension Seminar",
-    dates: "2024-05-01 to 2024-05-05",
-    place: "University Hall",
-    examination: "Reading comprehension evaluation",
+    detailedTask: "Reading Comprehension Seminar",
+    measure: "Training hours",
+    quantity: "40 hours",
+    workWith: "University Department",
+    firstQuarter: { july: false, august: false, september: false },
+    secondQuarter: { october: false, november: false, december: false },
+    thirdQuarter: { january: true, february: true, march: false },
+    fourthQuarter: { april: false, may: false, june: false },
+    budgetRequested: "8,000",
+    approvedBudget: "8,000",
+    cost: "7,500",
+    income: "2,000",
     category: "reading",
     completed: false,
     createdAt: "2024-02-01"
@@ -75,18 +124,26 @@ const Todos = () => {
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
   
   const [formData, setFormData] = useState({
-    name: '',
-    dates: '',
-    place: '',
-    examination: '',
+    detailedTask: '',
+    measure: '',
+    quantity: '',
+    workWith: '',
+    firstQuarter: { july: false, august: false, september: false },
+    secondQuarter: { october: false, november: false, december: false },
+    thirdQuarter: { january: false, february: false, march: false },
+    fourthQuarter: { april: false, may: false, june: false },
+    budgetRequested: '',
+    approvedBudget: '',
+    cost: '',
+    income: '',
     category: category || 'poetry'
   });
 
   // Filter todos based on category, search term, and status
   const filteredTodos = todos.filter(todo => {
     const matchesCategory = !category || category === 'all' || todo.category === category;
-    const matchesSearch = todo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         todo.place.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
                          (statusFilter === 'completed' && todo.completed) ||
                          (statusFilter === 'pending' && !todo.completed);
@@ -137,10 +194,18 @@ const Todos = () => {
     }
     
     setFormData({
-      name: '',
-      dates: '',
-      place: '',
-      examination: '',
+      detailedTask: '',
+      measure: '',
+      quantity: '',
+      workWith: '',
+      firstQuarter: { july: false, august: false, september: false },
+      secondQuarter: { october: false, november: false, december: false },
+      thirdQuarter: { january: false, february: false, march: false },
+      fourthQuarter: { april: false, may: false, june: false },
+      budgetRequested: '',
+      approvedBudget: '',
+      cost: '',
+      income: '',
       category: category || 'poetry'
     });
     setIsAddDialogOpen(false);
@@ -163,10 +228,18 @@ const Todos = () => {
   const openEditDialog = (todo: Todo) => {
     setEditingTodo(todo);
     setFormData({
-      name: todo.name,
-      dates: todo.dates,
-      place: todo.place,
-      examination: todo.examination,
+      detailedTask: todo.detailedTask,
+      measure: todo.measure,
+      quantity: todo.quantity,
+      workWith: todo.workWith,
+      firstQuarter: todo.firstQuarter,
+      secondQuarter: todo.secondQuarter,
+      thirdQuarter: todo.thirdQuarter,
+      fourthQuarter: todo.fourthQuarter,
+      budgetRequested: todo.budgetRequested,
+      approvedBudget: todo.approvedBudget,
+      cost: todo.cost,
+      income: todo.income,
       category: todo.category
     });
     setIsAddDialogOpen(true);
@@ -176,16 +249,24 @@ const Todos = () => {
     setIsAddDialogOpen(false);
     setEditingTodo(null);
     setFormData({
-      name: '',
-      dates: '',
-      place: '',
-      examination: '',
+      detailedTask: '',
+      measure: '',
+      quantity: '',
+      workWith: '',
+      firstQuarter: { july: false, august: false, september: false },
+      secondQuarter: { october: false, november: false, december: false },
+      thirdQuarter: { january: false, february: false, march: false },
+      fourthQuarter: { april: false, may: false, june: false },
+      budgetRequested: '',
+      approvedBudget: '',
+      cost: '',
+      income: '',
       category: category || 'poetry'
     });
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white dark:bg-card min-h-screen">
+    <div className="max-w-full mx-auto p-6 bg-white dark:bg-card min-h-screen overflow-x-auto">
       {/* Document Header */}
       <div className="border-2 border-black dark:border-gray-300 p-6 mb-6 bg-gray-50 dark:bg-card">
         <div className="text-center mb-4">
@@ -232,7 +313,7 @@ const Todos = () => {
               አዲስ ዝግጅት ጨምር
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
@@ -243,72 +324,311 @@ const Todos = () => {
             </DialogHeader>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">የዝግጅት ስም</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="የዝግጅቱን ስም ያስገቡ"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="detailedTask">Detailed Task</Label>
+                  <Input
+                    id="detailedTask"
+                    value={formData.detailedTask}
+                    onChange={(e) => setFormData(prev => ({ ...prev, detailedTask: e.target.value }))}
+                    placeholder="Enter detailed task"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="measure">Measure</Label>
+                  <Input
+                    id="measure"
+                    value={formData.measure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, measure: e.target.value }))}
+                    placeholder="Enter measure"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                    placeholder="Enter quantity"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="workWith">Who will we work with?</Label>
+                  <Input
+                    id="workWith"
+                    value={formData.workWith}
+                    onChange={(e) => setFormData(prev => ({ ...prev, workWith: e.target.value }))}
+                    placeholder="Enter collaboration partners"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quarter selections */}
+              <div className="space-y-4">
+                <Label>Select months for each quarter:</Label>
+                
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">1st Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="july"
+                          checked={formData.firstQuarter.july}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, july: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="july" className="text-sm">July</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="august"
+                          checked={formData.firstQuarter.august}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, august: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="august" className="text-sm">August</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="september"
+                          checked={formData.firstQuarter.september}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, september: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="september" className="text-sm">September</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">2nd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="october"
+                          checked={formData.secondQuarter.october}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, october: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="october" className="text-sm">October</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="november"
+                          checked={formData.secondQuarter.november}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, november: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="november" className="text-sm">November</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="december"
+                          checked={formData.secondQuarter.december}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, december: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="december" className="text-sm">December</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">3rd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="january"
+                          checked={formData.thirdQuarter.january}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, january: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="january" className="text-sm">January</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="february"
+                          checked={formData.thirdQuarter.february}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, february: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="february" className="text-sm">February</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="march"
+                          checked={formData.thirdQuarter.march}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, march: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="march" className="text-sm">March</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">4th Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="april"
+                          checked={formData.fourthQuarter.april}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, april: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="april" className="text-sm">April</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="may"
+                          checked={formData.fourthQuarter.may}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, may: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="may" className="text-sm">May</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="june"
+                          checked={formData.fourthQuarter.june}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, june: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="june" className="text-sm">June</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budgetRequested">Budget Requested by Department</Label>
+                  <Input
+                    id="budgetRequested"
+                    value={formData.budgetRequested}
+                    onChange={(e) => setFormData(prev => ({ ...prev, budgetRequested: e.target.value }))}
+                    placeholder="Enter budget requested"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="approvedBudget">Approved Budget</Label>
+                  <Input
+                    id="approvedBudget"
+                    value={formData.approvedBudget}
+                    onChange={(e) => setFormData(prev => ({ ...prev, approvedBudget: e.target.value }))}
+                    placeholder="Enter approved budget"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost</Label>
+                  <Input
+                    id="cost"
+                    value={formData.cost}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
+                    placeholder="Enter cost"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="income">Income</Label>
+                  <Input
+                    id="income"
+                    value={formData.income}
+                    onChange={(e) => setFormData(prev => ({ ...prev, income: e.target.value }))}
+                    placeholder="Enter income"
+                    required
+                  />
+                </div>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="dates">ቀናት</Label>
-                <Input
-                  id="dates"
-                  value={formData.dates}
-                  onChange={(e) => setFormData(prev => ({ ...prev, dates: e.target.value }))}
-                  placeholder="ምሳሌ: 2024-03-15 እስከ 2024-03-20"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="place">ስፍራ</Label>
-                <Input
-                  id="place"
-                  value={formData.place}
-                  onChange={(e) => setFormData(prev => ({ ...prev, place: e.target.value }))}
-                  placeholder="የዝግጅቱን ቦታ ያስገቡ"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="examination">ፈተና</Label>
-                <Textarea
-                  id="examination"
-                  value={formData.examination}
-                  onChange={(e) => setFormData(prev => ({ ...prev, examination: e.target.value }))}
-                  placeholder="የፈተናው ዝርዝር ይግለጹ"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">ምድብ</Label>
+                <Label htmlFor="category">Category</Label>
                 <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="ምድብ ይምረጡ" />
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="poetry">ግጥም</SelectItem>
-                    <SelectItem value="tradition">ወግ</SelectItem>
-                    <SelectItem value="reading">ንባብ</SelectItem>
-                    <SelectItem value="drama">ድራማ</SelectItem>
-                    <SelectItem value="folding">መታጠፊያ</SelectItem>
+                    <SelectItem value="poetry">Poetry</SelectItem>
+                    <SelectItem value="tradition">Tradition</SelectItem>
+                    <SelectItem value="reading">Reading</SelectItem>
+                    <SelectItem value="drama">Drama</SelectItem>
+                    <SelectItem value="folding">Folding</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="flex gap-2 pt-4">
                 <Button type="submit" className="flex-1">
-                  {editingTodo ? 'አዘምን' : 'ጨምር'}
+                  {editingTodo ? 'Update' : 'Add'}
                 </Button>
                 <Button type="button" variant="outline" onClick={closeDialog}>
-                  ተወው
+                  Cancel
                 </Button>
               </div>
             </form>
@@ -317,18 +637,48 @@ const Todos = () => {
       </div>
 
       {/* Official Form Table */}
-      <div className="border-2 border-black dark:border-gray-300">
-        <table className="w-full border-collapse">
+      <div className="border-2 border-black dark:border-gray-300 overflow-x-auto">
+        <table className="w-full border-collapse min-w-[1400px]">
           <thead>
             <tr className="bg-yellow-200 dark:bg-yellow-800">
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12">ተ.ቁ</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium">የዝግጅት ስም</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">መጀመሪያ ቀን</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ማለቂያ ቀን</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ስፍራ</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ሁኔታ</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ፊት ናቅ</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">ዕርምት</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12">No</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]">detailed task</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Measure</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Quantity</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">Who will we work with?</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>1st quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>2nd quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>3rd quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">The budget requested by the department</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">Approved budget</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Cost</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">Income</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-16">Actions</th>
+            </tr>
+            <tr className="bg-yellow-200 dark:bg-yellow-800">
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">August</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">September</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">October</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">November</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">December</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">January</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">February</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">March</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">April</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">May</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">June</th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
+              <th className="border border-black dark:border-gray-300 p-1"></th>
             </tr>
           </thead>
           <tbody>
@@ -339,34 +689,70 @@ const Todos = () => {
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-sm">
                   <div className={todo.completed ? 'line-through text-muted-foreground' : ''}>
-                    {todo.name}
+                    {todo.detailedTask}
                   </div>
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.dates.split(' to ')[0] || todo.dates.split(' እስከ ')[0] || todo.dates}
+                  {todo.measure}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.dates.split(' to ')[1] || todo.dates.split(' እስከ ')[1] || ''}
+                  {todo.quantity}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-sm">
-                  {todo.place}
+                  {todo.workWith}
+                </td>
+                {/* 1st Quarter */}
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.firstQuarter.july ? '✓' : ''}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-center">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleComplete(todo.id)}
-                    className="p-1 h-auto"
-                  >
-                    {todo.completed ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </Button>
+                  {todo.firstQuarter.august ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.firstQuarter.september ? '✓' : ''}
+                </td>
+                {/* 2nd Quarter */}
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.secondQuarter.october ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.secondQuarter.november ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.secondQuarter.december ? '✓' : ''}
+                </td>
+                {/* 3rd Quarter */}
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.thirdQuarter.january ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.thirdQuarter.february ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.thirdQuarter.march ? '✓' : ''}
+                </td>
+                {/* 4th Quarter */}
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.fourthQuarter.april ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.fourthQuarter.may ? '✓' : ''}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-center">
+                  {todo.fourthQuarter.june ? '✓' : ''}
+                </td>
+                {/* Budget columns */}
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.budgetRequested}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.completed ? '✓' : '•'}
+                  {todo.approvedBudget}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.cost}
+                </td>
+                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                  {todo.income}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2">
                   <div className="flex gap-1 justify-center">
@@ -398,6 +784,20 @@ const Todos = () => {
                   {filteredTodos.length + index + 1}
                 </td>
                 <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
+                <td className="border border-black dark:border-gray-300 p-2"></td>
                 <td className="border border-black dark:border-gray-300 p-2"></td>
                 <td className="border border-black dark:border-gray-300 p-2"></td>
                 <td className="border border-black dark:border-gray-300 p-2"></td>
