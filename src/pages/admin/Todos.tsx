@@ -327,8 +327,8 @@ const Todos = () => {
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ማለቂያ ቀን</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32">ስፍራ</th>
               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ሁኔታ</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ፈተና</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">ዕርማት</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24">ፊት ናቅ</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20">ዕርምት</th>
             </tr>
           </thead>
           <tbody>
