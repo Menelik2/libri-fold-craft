@@ -639,7 +639,7 @@ const Todos = () => {
       {/* Official Form Table */}
       <div className="border-2 border-black dark:border-gray-300 overflow-x-auto">
         <table className="w-full border-collapse min-w-[1600px]">
-           <thead>
+            <thead>
              <tr className="bg-white dark:bg-card">
                <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12" rowSpan={2}>No</th>
                <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]" rowSpan={2}>detailed task</th>
@@ -652,6 +652,7 @@ const Todos = () => {
                <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
                <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>The budget requested by the department</th>
                <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={2}>Approved budget</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Actions</th>
              </tr>
              <tr className="bg-yellow-200 dark:bg-yellow-800">
                <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
@@ -745,33 +746,77 @@ const Todos = () => {
                  <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
                    {todo.income}
                  </td>
+                 {/* Actions column */}
+                 <td className="border border-black dark:border-gray-300 p-2">
+                   <div className="flex gap-1 justify-center">
+                     <Button
+                       size="sm"
+                       variant={todo.completed ? "default" : "outline"}
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         toggleComplete(todo.id);
+                       }}
+                       className="h-7 w-7 p-0"
+                       title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
+                     >
+                       {todo.completed ? <CheckCircle2 className="h-3 w-3" /> : <Circle className="h-3 w-3" />}
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         openEditDialog(todo);
+                       }}
+                       className="h-7 w-7 p-0"
+                       title="Edit task"
+                     >
+                       <Edit className="h-3 w-3" />
+                     </Button>
+                     <Button
+                       size="sm"
+                       variant="destructive"
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         if (confirm("Are you sure you want to delete this task?")) {
+                           deleteTodo(todo.id);
+                         }
+                       }}
+                       className="h-7 w-7 p-0"
+                       title="Delete task"
+                     >
+                       <Trash2 className="h-3 w-3" />
+                     </Button>
+                   </div>
+                 </td>
               </tr>
             ))}
             
-             {/* Empty rows to maintain form structure */}
-             {Array.from({ length: Math.max(0, 10 - filteredTodos.length) }).map((_, index) => (
-               <tr key={`empty-${index}`} className="bg-white dark:bg-card">
-                 <td className="border border-black dark:border-gray-300 p-2 text-center text-sm">
-                   {filteredTodos.length + index + 1}
-                 </td>
-                 <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-                 <td className="border border-black dark:border-gray-300 p-2"></td>
-               </tr>
-             ))}
+              {/* Empty rows to maintain form structure */}
+              {Array.from({ length: Math.max(0, 10 - filteredTodos.length) }).map((_, index) => (
+                <tr key={`empty-${index}`} className="bg-white dark:bg-card">
+                  <td className="border border-black dark:border-gray-300 p-2 text-center text-sm">
+                    {filteredTodos.length + index + 1}
+                  </td>
+                  <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                  <td className="border border-black dark:border-gray-300 p-2"></td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
