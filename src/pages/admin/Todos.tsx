@@ -639,41 +639,45 @@ const Todos = () => {
       {/* Official Form Table */}
       <div className="border-2 border-black dark:border-gray-300 overflow-x-auto">
         <table className="w-full border-collapse min-w-[1600px]">
-          <thead>
-            <tr className="bg-white dark:bg-card">
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12" rowSpan={2}>No</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]" rowSpan={2}>detailed task</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Measure</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Quantity</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Who will we work with?</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>1st quarter</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>2nd quarter</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>3rd quarter</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>The budget requested by the department</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>Approved budget</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Cost</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Income</th>
-              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-16" rowSpan={2}>Actions</th>
-            </tr>
-            <tr className="bg-yellow-200 dark:bg-yellow-800">
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">August</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">September</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">October</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">November</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">December</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">January</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">February</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">March</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">April</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">May</th>
-              <th className="border border-black dark:border-gray-300 p-1 text-xs">June</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTodos.map((todo, index) => (
-              <tr key={todo.id} className={`${todo.completed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-white dark:bg-card'} hover:bg-gray-50 dark:hover:bg-card`}>
+           <thead>
+             <tr className="bg-white dark:bg-card">
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12" rowSpan={2}>No</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]" rowSpan={2}>detailed task</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Measure</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Quantity</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Who will we work with?</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>1st quarter</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>2nd quarter</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>3rd quarter</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>The budget requested by the department</th>
+               <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={2}>Approved budget</th>
+             </tr>
+             <tr className="bg-yellow-200 dark:bg-yellow-800">
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">August</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">September</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">October</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">November</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">December</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">January</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">February</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">March</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">April</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">May</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs">June</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs w-20">Cost</th>
+               <th className="border border-black dark:border-gray-300 p-1 text-xs w-20">Income</th>
+             </tr>
+           </thead>
+           <tbody>
+             {filteredTodos.map((todo, index) => (
+               <tr 
+                 key={todo.id} 
+                 className={`${todo.completed ? 'bg-green-50 dark:bg-green-900/20' : 'bg-white dark:bg-card'} hover:bg-gray-50 dark:hover:bg-card cursor-pointer`}
+                 onDoubleClick={() => openEditDialog(todo)}
+                 title="Double-click to edit"
+               >
                 <td className="border border-black dark:border-gray-300 p-2 text-center text-sm font-medium">
                   {index + 1}
                 </td>
@@ -731,71 +735,43 @@ const Todos = () => {
                 <td className="border border-black dark:border-gray-300 p-2 text-center">
                   {todo.fourthQuarter.june ? '✓' : ''}
                 </td>
-                {/* Budget columns */}
-                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.budgetRequested}
-                </td>
-                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.approvedBudget}
-                </td>
-                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.cost}
-                </td>
-                <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
-                  {todo.income}
-                </td>
-                <td className="border border-black dark:border-gray-300 p-2">
-                  <div className="flex gap-1 justify-center">
-                    <Button 
-                      size="sm" 
-                      variant="ghost"
-                      onClick={() => openEditDialog(todo)}
-                      className="p-1 h-auto"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="text-destructive hover:text-destructive p-1 h-auto"
-                      onClick={() => deleteTodo(todo.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </td>
+                 {/* Budget columns */}
+                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                   {todo.budgetRequested}
+                 </td>
+                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                   {todo.cost}
+                 </td>
+                 <td className="border border-black dark:border-gray-300 p-2 text-sm text-center">
+                   {todo.income}
+                 </td>
               </tr>
             ))}
             
-            {/* Empty rows to maintain form structure */}
-            {Array.from({ length: Math.max(0, 10 - filteredTodos.length) }).map((_, index) => (
-              <tr key={`empty-${index}`} className="bg-white dark:bg-card">
-                <td className="border border-black dark:border-gray-300 p-2 text-center text-sm">
-                  {filteredTodos.length + index + 1}
-                </td>
-                <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-                <td className="border border-black dark:border-gray-300 p-2"></td>
-              </tr>
-            ))}
+             {/* Empty rows to maintain form structure */}
+             {Array.from({ length: Math.max(0, 10 - filteredTodos.length) }).map((_, index) => (
+               <tr key={`empty-${index}`} className="bg-white dark:bg-card">
+                 <td className="border border-black dark:border-gray-300 p-2 text-center text-sm">
+                   {filteredTodos.length + index + 1}
+                 </td>
+                 <td className="border border-black dark:border-gray-300 p-2 h-12"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+                 <td className="border border-black dark:border-gray-300 p-2"></td>
+               </tr>
+             ))}
           </tbody>
         </table>
       </div>
