@@ -43,7 +43,7 @@ interface Todo {
   approvedBudget: string;
   cost: string;
   income: string;
-  category: string;
+  year: string;
   completed: boolean;
   createdAt: string;
 }
@@ -64,7 +64,7 @@ const mockTodos: Todo[] = [
     approvedBudget: "12,000",
     cost: "10,500",
     income: "0",
-    category: "poetry",
+    year: "2024",
     completed: false,
     createdAt: "2024-01-15"
   },
@@ -82,7 +82,7 @@ const mockTodos: Todo[] = [
     approvedBudget: "20,000",
     cost: "18,000",
     income: "5,000",
-    category: "tradition",
+    year: "2024",
     completed: true,
     createdAt: "2024-01-20"
   },
@@ -100,23 +100,15 @@ const mockTodos: Todo[] = [
     approvedBudget: "8,000",
     cost: "7,500",
     income: "2,000",
-    category: "reading",
+    year: "2024",
     completed: false,
     createdAt: "2024-02-01"
   }
 ];
 
-const categoryColors = {
-  poetry: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  tradition: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  reading: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-  drama: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  folding: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
-};
-
 const Todos = () => {
   const navigate = useNavigate();
-  const { category } = useParams();
+  const { year } = useParams();
   const [todos, setTodos] = useState<Todo[]>(mockTodos);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -136,31 +128,24 @@ const Todos = () => {
     approvedBudget: '',
     cost: '',
     income: '',
-    category: category || 'poetry'
+    year: year || '2024'
   });
 
-  // Filter todos based on category, search term, and status
+  // Filter todos based on year, search term, and status
   const filteredTodos = todos.filter(todo => {
-    const matchesCategory = !category || category === 'all' || todo.category === category;
+    const matchesYear = !year || year === 'all' || todo.year === year;
     const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || 
                          (statusFilter === 'completed' && todo.completed) ||
                          (statusFilter === 'pending' && !todo.completed);
     
-    return matchesCategory && matchesSearch && matchesStatus;
+    return matchesYear && matchesSearch && matchesStatus;
   });
 
-  const getCategoryDisplayName = (cat: string) => {
-    const categoryNames: Record<string, string> = {
-      all: 'All Categories',
-      poetry: 'Poetry',
-      tradition: 'Tradition',
-      reading: 'Reading',
-      drama: 'Drama',
-      folding: 'Folding'
-    };
-    return categoryNames[cat] || cat;
+  const getYearDisplayName = (yr: string) => {
+    if (yr === 'all') return 'All Years';
+    return yr;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -206,7 +191,7 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      category: category || 'poetry'
+      year: year || '2024'
     });
     setIsAddDialogOpen(false);
   };
@@ -240,7 +225,7 @@ const Todos = () => {
       approvedBudget: todo.approvedBudget,
       cost: todo.cost,
       income: todo.income,
-      category: todo.category
+      year: todo.year
     });
     setIsAddDialogOpen(true);
   };
@@ -261,7 +246,7 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      category: category || 'poetry'
+      year: year || '2024'
     });
   };
 
@@ -272,7 +257,7 @@ const Todos = () => {
         <div className="text-center mb-4">
           <h1 className="text-xl font-bold mb-2">የባህርዳር ፈ/ገ/ቅ/ጊዮርጊስ ካ/ሰ/ት/ ቤት</h1>
           <h2 className="text-lg font-semibold">የዓመታዊ የማነ ጥበብ ዝግጅት ሰንጠረዥ</h2>
-          <p className="text-sm mt-2">{getCategoryDisplayName(category || 'all')} - {new Date().getFullYear()}</p>
+          <p className="text-sm mt-2">{getYearDisplayName(year || 'all')} - {new Date().getFullYear()}</p>
         </div>
         
         <div className="flex justify-between text-sm">
@@ -608,17 +593,17 @@ const Todos = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}>
+                <Label htmlFor="year">Year</Label>
+                <Select value={formData.year} onValueChange={(value) => setFormData(prev => ({ ...prev, year: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select year" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="poetry">Poetry</SelectItem>
-                    <SelectItem value="tradition">Tradition</SelectItem>
-                    <SelectItem value="reading">Reading</SelectItem>
-                    <SelectItem value="drama">Drama</SelectItem>
-                    <SelectItem value="folding">Folding</SelectItem>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                    <SelectItem value="2028">2028</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
