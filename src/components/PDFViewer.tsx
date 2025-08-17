@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { X, Download, ZoomIn, ZoomOut, RotateCw, Maximize2 } from 'lucide-react';
@@ -13,83 +13,36 @@ interface PDFViewerProps {
 const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
-  const [downloading, setDownloading] = useState(false);
 
-  // Normalize URL: if relative (starts with "/"), prefix with origin
-  const resolvedUrl = useMemo(() => {
-    if (!pdfUrl) return '';
-    try {
-      // If it's already an absolute URL, URL constructor will work
-      new URL(pdfUrl);
-      return pdfUrl;
-    } catch {
-      // Relative path -> resolve against current origin
-      return `${window.location.origin}${pdfUrl.startsWith('/') ? '' : '/'}${pdfUrl}`;
-    }
-  }, [pdfUrl]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      // Reset view state when viewer is closed
-      setZoom(100);
-      setRotation(0);
-      setDownloading(false);
-    }
-  }, [isOpen]);
-
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 400));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 25));
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 25, 200));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 25, 50));
   const handleRotate = () => setRotation(prev => (prev + 90) % 360);
-
-  const handleDownload = async () => {
-    if (!resolvedUrl) return;
-    setDownloading(true);
-    try {
-      // Try fetching the file as a blob so downloads work even for same-origin relative paths
-      const res = await fetch(resolvedUrl, { method: 'GET' });
-      if (!res.ok) throw new Error('Failed to fetch file for download');
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = (title || 'document').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      // Fallback: open in new tab (user can manually download from the browser)
-      window.open(resolvedUrl, '_blank', 'noopener');
-    } finally {
-      setDownloading(false);
-    }
+  
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = pdfUrl;
+    link.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.pdf';
+    link.click();
   };
 
   const handleFullscreen = () => {
-    if (!resolvedUrl) return;
-    window.open(resolvedUrl, '_blank', 'noopener');
-  };
-
-  // Compute transform style for the inner iframe wrapper
-  const transformStyle: React.CSSProperties = {
-    transform: `rotate(${rotation}deg) scale(${zoom / 100})`,
-    transformOrigin: 'center top'
+    window.open(pdfUrl, '_blank');
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
         <DialogHeader className="flex-shrink-0 px-6 py-4 border-b">
-          <div className="flex items-center justify-between w-full">
+          <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-semibold truncate pr-4">
-              {title || 'PDF Viewer'}
+              {title}
             </DialogTitle>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleZoomOut}
-                disabled={zoom <= 25}
+                disabled={zoom <= 50}
                 title="Zoom Out"
               >
                 <ZoomOut className="h-4 w-4" />
@@ -101,7 +54,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
                 variant="outline"
                 size="sm"
                 onClick={handleZoomIn}
-                disabled={zoom >= 400}
+                disabled={zoom >= 200}
                 title="Zoom In"
               >
                 <ZoomIn className="h-4 w-4" />
@@ -119,7 +72,6 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
                 size="sm"
                 onClick={handleDownload}
                 title="Download"
-                disabled={downloading}
               >
                 <Download className="h-4 w-4" />
               </Button>
@@ -142,34 +94,31 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
             </div>
           </div>
         </DialogHeader>
-
-        <div className="flex-1 overflow-auto bg-muted/20">
-          {resolvedUrl ? (
-            <div className="w-full h-full flex items-start justify-center p-4">
-              {/* A wrapper allows the transform (scale/rotate) to apply while the outer container handles scrolling */}
-              <div
-                className="inline-block bg-white shadow-sm"
-                style={{
-                  width: 'min(1100px, 95%)',
-                  height: 'calc(100vh - 200px)',
-                  overflow: 'hidden',
-                  ...transformStyle
-                }}
-                aria-label="PDF container"
-              >
-                <iframe
-                  title={title || 'pdf'}
-                  src={resolvedUrl}
-                  className="w-full h-full"
-                  style={{ border: '0', display: 'block' }}
-                />
-              </div>
+        
+        <div className="flex-1 overflow-hidden bg-muted/20">
+          <div className="w-full h-full flex items-center justify-center">
+            <div 
+              className="w-full h-full transition-transform duration-200"
+              style={{ 
+                transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                transformOrigin: 'center center'
+              }}
+            >
+              <iframe
+                src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                className="w-full h-full border-0 rounded-md"
+                title={`PDF Viewer - ${title}`}
+                loading="lazy"
+              />
             </div>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-              No PDF URL provided
-            </div>
-          )}
+          </div>
+        </div>
+        
+        <div className="flex-shrink-0 px-6 py-3 border-t bg-muted/30">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <span>Use the toolbar above to zoom, rotate, or download the PDF</span>
+            <span>Press ESC to close</span>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
