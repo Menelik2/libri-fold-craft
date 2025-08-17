@@ -48,6 +48,15 @@ interface Todo {
   createdAt: string;
 }
 
+// Categories to remove (case-insensitive, substring match)
+const removedCategories = [
+  'Poetry',
+  'Tradition',
+  'Reading',
+  'Drama',
+  'Folding'
+];
+
 // Mock data - in a real app, this would come from your database
 const mockTodos: Todo[] = [
   {
@@ -106,6 +115,13 @@ const mockTodos: Todo[] = [
   }
 ];
 
+// Utility to check if a detailedTask matches any removed category
+function isRemovedCategory(task: string): boolean {
+  return removedCategories.some(cat =>
+    task.toLowerCase().includes(cat.toLowerCase())
+  );
+}
+
 const Todos = () => {
   const navigate = useNavigate();
   const { year } = useParams();
@@ -131,17 +147,18 @@ const Todos = () => {
     year: year || '2024'
   });
 
-  // Filter todos based on year, search term, and status
-  const filteredTodos = todos.filter(todo => {
-    const matchesYear = !year || year === 'all' || todo.year === year;
-    const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'completed' && todo.completed) ||
-                         (statusFilter === 'pending' && !todo.completed);
-    
-    return matchesYear && matchesSearch && matchesStatus;
-  });
+  // Filter todos based on year, search term, status, and exclude removed categories
+  const filteredTodos = todos
+    .filter(todo => !isRemovedCategory(todo.detailedTask))
+    .filter(todo => {
+      const matchesYear = !year || year === 'all' || todo.year === year;
+      const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || 
+                           (statusFilter === 'completed' && todo.completed) ||
+                           (statusFilter === 'pending' && !todo.completed);
+      return matchesYear && matchesSearch && matchesStatus;
+    });
 
   const getYearDisplayName = (yr: string) => {
     if (yr === 'all') return 'All Years';
@@ -150,6 +167,16 @@ const Todos = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent adding tasks matching removed categories
+    if (isRemovedCategory(formData.detailedTask)) {
+      toast({
+        title: "Invalid Category",
+        description: "You cannot add a task with Poetry, Tradition, Reading, Drama, or Folding in the name.",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (editingTodo) {
       // Update existing todo
@@ -305,6 +332,9 @@ const Todos = () => {
               </DialogTitle>
               <DialogDescription>
                 የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
+                <span className="block text-xs text-destructive mt-1">
+                  * Poetry, Tradition, Reading, Drama, and Folding related tasks are not allowed.
+                </span>
               </DialogDescription>
             </DialogHeader>
             
