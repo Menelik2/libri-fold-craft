@@ -154,6 +154,10 @@ const Todos = () => {
     year: initialSelectedYear
   });
 
+  // Signature name fields (editable)
+  const [signature1, setSignature1] = useState('');
+  const [signature2, setSignature2] = useState('');
+
   // keep selectedYear in sync with url param when route changes externally
   useEffect(() => {
     if (year && year !== selectedYear) {
@@ -813,7 +817,7 @@ const Todos = () => {
                 </td>
                 {/* Actions column */}
                 <td className="border border-black dark:border-gray-300 p-2">
-                  <div className="flex gap-1 justify-center">
+                  <div className="flex gap-1.justify-center">
                     <Button
                       size="sm"
                       variant={todo.completed ? "default" : "outline"}
@@ -864,13 +868,27 @@ const Todos = () => {
       <div className="mt-8 grid grid-cols-2 gap-8">
         <div className="space-y-4">
           <p className="font-medium">የዝግጅት ኃላፊ ፊርማ፡-</p>
-          <div className="border-b border-black dark:border-gray-300 h-12"></div>
-          <p className="text-sm">ስም፡ _____________________</p>
+          <div className="border-b border-black dark:border-gray-300 h-12 flex items-center px-2">
+            <Input
+              placeholder="ስም ያስገቡ"
+              value={signature1}
+              onChange={(e) => setSignature1(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 p-0"
+            />
+          </div>
+          <p className="text-sm">ስም፡</p>
         </div>
         <div className="space-y-4">
           <p className="font-medium">የእይታ ኃላፊ ፊርማ፡-</p>
-          <div className="border-b border-black dark:border-gray-300 h-12"></div>
-          <p className="text-sm">ስም፡ _____________________</p>
+          <div className="border-b border-black dark:border-gray-300 h-12 flex items-center px-2">
+            <Input
+              placeholder="ስም ያስገቡ"
+              value={signature2}
+              onChange={(e) => setSignature2(e.target.value)}
+              className="bg-transparent border-none focus:ring-0 p-0"
+            />
+          </div>
+          <p className="text-sm">ስም፡</p>
         </div>
       </div>
 
