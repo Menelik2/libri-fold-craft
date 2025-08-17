@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -125,12 +125,19 @@ function isRemovedCategory(task: string): boolean {
 const Todos = () => {
   const navigate = useNavigate();
   const { year } = useParams();
+
+  // derive initial selected year from url param or current year
+  const initialSelectedYear = year || new Date().getFullYear().toString();
+
   const [todos, setTodos] = useState<Todo[]>(mockTodos);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-  
+
+  // selectedYear controls which year's items are shown/edited. 'all' shows everything.
+  const [selectedYear, setSelectedYear] = useState<string>(initialSelectedYear);
+
   const [formData, setFormData] = useState({
     detailedTask: '',
     measure: '',
@@ -144,14 +151,25 @@ const Todos = () => {
     approvedBudget: '',
     cost: '',
     income: '',
-    year: year || '2024'
+    year: initialSelectedYear
   });
 
-  // Filter todos based on year, search term, status, and exclude removed categories
+  // keep selectedYear in sync with url param when route changes externally
+  useEffect(() => {
+    if (year && year !== selectedYear) {
+      setSelectedYear(year);
+      setFormData(prev => ({ ...prev, year }));
+    }
+    // if url param is missing but we have selectedYear, we don't overwrite it
+    // (this allows UI changes to update the URL)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [year]);
+
+  // Filter todos based on selectedYear, search term, status, and exclude removed categories
   const filteredTodos = todos
     .filter(todo => !isRemovedCategory(todo.detailedTask))
     .filter(todo => {
-      const matchesYear = !year || year === 'all' || todo.year === year;
+      const matchesYear = selectedYear === 'all' || todo.year === selectedYear;
       const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'all' || 
@@ -192,9 +210,13 @@ const Todos = () => {
       setEditingTodo(null);
     } else {
       // Add new todo
+      // ensure the new todo receives the currently selected year (unless 'all' is selected - then default to current year)
+      const targetYear = formData.year === 'all' ? new Date().getFullYear().toString() : formData.year || selectedYear || new Date().getFullYear().toString();
+
       const newTodo: Todo = {
         id: Date.now(),
         ...formData,
+        year: targetYear,
         completed: false,
         createdAt: new Date().toISOString().split('T')[0]
       };
@@ -218,7 +240,7 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      year: year || '2024'
+      year: selectedYear === 'all' ? new Date().getFullYear().toString() : selectedYear
     });
     setIsAddDialogOpen(false);
   };
@@ -273,8 +295,20 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      year: year || '2024'
+      year: selectedYear === 'all' ? new Date().getFullYear().toString() : selectedYear
     });
+  };
+
+  // when user changes the year select, update selectedYear, update form default year and update url for bookmarking
+  const onYearChange = (value: string) => {
+    setSelectedYear(value);
+    setFormData(prev => ({ ...prev, year: value === 'all' ? new Date().getFullYear().toString() : value }));
+    // update the URL so year selection is bookmarkable (adjust base path if needed)
+    try {
+      navigate(`/admin/todos/${value}`);
+    } catch (e) {
+      // ignore navigate errors for environments where route differs
+    }
   };
 
   return (
@@ -284,11 +318,11 @@ const Todos = () => {
         <div className="text-center mb-4">
           <h1 className="text-xl font-bold mb-2">የባህርዳር ፈ/ገ/ቅ/ጊዮርጊስ ካ/ሰ/ት/ ቤት</h1>
           <h2 className="text-lg font-semibold">የዓመታዊ የማነ ጥበብ ዝግጅት ሰንጠረዥ</h2>
-          <p className="text-sm mt-2">{getYearDisplayName(year || 'all')} - {new Date().getFullYear()}</p>
+          <p className="text-sm mt-2">{getYearDisplayName(selectedYear || 'all')} - {new Date().getFullYear()}</p>
         </div>
         
         <div className="flex justify-between text-sm">
-          <div>ዓመት: ____________</div>
+          <div>ዓመት: {selectedYear === 'all' ? 'Multiple / All' : selectedYear}</div>
           <div>ቀን: {new Date().toLocaleDateString()}</div>
           <div>ገጽ: 1 ከ 1</div>
         </div>
@@ -314,6 +348,21 @@ const Todos = () => {
               <SelectItem value="all">ሁሉም</SelectItem>
               <SelectItem value="pending">በመጠባበቅ</SelectItem>
               <SelectItem value="completed">የተጠናቀቀ</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Year selector to allow adding/viewing per-year items */}
+          <Select value={selectedYear} onValueChange={onYearChange}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="ዓመት" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              <SelectItem value="2024">2024</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2027">2027</SelectItem>
+              <SelectItem value="2028">2028</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -832,10 +881,14 @@ const Todos = () => {
           <p className="text-muted-foreground mb-4">
             {searchTerm || statusFilter !== 'all' 
               ? 'Try adjusting your search criteria or filters.'
-              : 'Get started by adding your first Annual Arts Plan item.'
+              : `No items for ${getYearDisplayName(selectedYear || 'all')}. Add items for this year.`
             }
           </p>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => {
+            // ensure form opens with selectedYear
+            setFormData(prev => ({ ...prev, year: selectedYear === 'all' ? new Date().getFullYear().toString() : selectedYear }));
+            setIsAddDialogOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Add Your First Item
           </Button>
