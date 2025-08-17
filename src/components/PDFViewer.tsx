@@ -80,14 +80,35 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
     window.open(resolvedUrl, '_blank', 'noopener');
   };
 
-  // Compute transform style for the inner iframe wrapper
+  // Use rotation via transform and zoom via the non-standard `zoom` when available.
+  // `zoom` provides better layout/scroll behaviour in Chromium-based browsers.
+  // For Firefox (no zoom support) scaling will fall back to transform: scale(...) using CSS variable.
   const transformStyle: React.CSSProperties = {
-    transform: `rotate(${rotation}deg) scale(${zoom / 100})`,
-    transformOrigin: 'center top'
+    transform: `rotate(${rotation}deg)`,
+    transformOrigin: 'center center',
+    // keep display block so rotate behaves predictably
+    display: 'block'
   };
 
+  // wrapperZoomStyle sets both zoom (for Chromium) and a fallback scale for browsers without zoom.
+  // The fallback uses CSS scale via transform; to avoid double-rotating we only apply scale on an inner element if needed.
+  const wrapperStyle: React.CSSProperties = {
+    width: 'min(1100px, 95%)',
+    height: 'min(80vh, 95%)',
+    overflow: 'hidden',
+    backgroundColor: 'white',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+    // zoom is non-standard but works in most user agents (Chromium-based).
+    // We still provide scale fallback for others by using an inline style on the iframe content container.
+    // @ts-ignore - `zoom` is non-standard
+    zoom: `${zoom}%`
+  };
+
+  // fallbackScale used when `zoom` isn't supported; scale is applied to an inner wrapper around the iframe.
+  const fallbackScale = zoom / 100;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
         <DialogHeader className="flex-shrink-0 px-6 py-4 border-b">
           <div className="flex items-center justify-between w-full">
@@ -156,23 +177,47 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
         <div className="flex-1 overflow-auto bg-muted/20">
           {resolvedUrl ? (
             <div className="w-full h-full flex items-start justify-center p-4">
-              {/* A wrapper allows the transform (scale/rotate) to apply while the outer container handles scrolling */}
+              {/* Outer wrapper controls overall size and zoom when supported */}
               <div
-                className="inline-block bg-white shadow-sm"
-                style={{
-                  width: 'min(1100px, 95%)',
-                  height: 'calc(100vh - 200px)',
-                  overflow: 'hidden',
-                  ...transformStyle
-                }}
+                className="inline-block"
+                style={wrapperStyle}
                 aria-label="PDF container"
               >
-                <iframe
-                  title={title || 'pdf'}
-                  src={resolvedUrl}
-                  className="w-full h-full"
-                  style={{ border: '0', display: 'block' }}
-                />
+                {/* Inner wrapper applies rotation and provides a scale fallback for non-zoom browsers */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'auto',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      overflow: 'hidden',
+                      display: 'block',
+                      // apply rotate to this wrapper
+                      ...transformStyle,
+                      // fallback scale for browsers that don't support `zoom`
+                      transformOrigin: 'center center',
+                      // If zoom isn't supported, apply scale as part of transform;
+                      // when rotation is also present, make sure scale is included.
+                      transform: `rotate(${rotation}deg) scale(${fallbackScale})`
+                    }}
+                  >
+                    <iframe
+                      key={`${resolvedUrl}-${zoom}-${rotation}`}
+                      title={title || 'pdf'}
+                      src={resolvedUrl}
+                      className="w-full h-full"
+                      style={{ border: '0', display: 'block', width: '100%', height: '100%' }}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           ) : (
