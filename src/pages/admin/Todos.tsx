@@ -160,8 +160,6 @@ const Todos = () => {
       setSelectedYear(year);
       setFormData(prev => ({ ...prev, year }));
     }
-    // if url param is missing but we have selectedYear, we don't overwrite it
-    // (this allows UI changes to update the URL)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
@@ -211,7 +209,9 @@ const Todos = () => {
     } else {
       // Add new todo
       // ensure the new todo receives the currently selected year (unless 'all' is selected - then default to current year)
-      const targetYear = formData.year === 'all' ? new Date().getFullYear().toString() : formData.year || selectedYear || new Date().getFullYear().toString();
+      const targetYear = formData.year === 'all' || !formData.year
+        ? new Date().getFullYear().toString()
+        : formData.year;
 
       const newTodo: Todo = {
         id: Date.now(),
@@ -299,13 +299,18 @@ const Todos = () => {
     });
   };
 
-  // when user changes the year select, update selectedYear, update form default year and update url for bookmarking
-  const onYearChange = (value: string) => {
+  // When user types a year in the input we update selectedYear and formData.
+  // We update the URL when the user presses Enter or when the input loses focus.
+  const handleYearInputChange = (value: string) => {
     setSelectedYear(value);
-    setFormData(prev => ({ ...prev, year: value === 'all' ? new Date().getFullYear().toString() : value }));
-    // update the URL so year selection is bookmarkable (adjust base path if needed)
+    setFormData(prev => ({ ...prev, year: value }));
+  };
+
+  const applyYearToUrl = () => {
     try {
-      navigate(`/admin/todos/${value}`);
+      // Allow 'all' or any typed year to be put in the URL
+      const safe = selectedYear && selectedYear.trim() !== '' ? selectedYear.trim() : 'all';
+      navigate(`/admin/todos/${safe}`);
     } catch (e) {
       // ignore navigate errors for environments where route differs
     }
@@ -351,20 +356,21 @@ const Todos = () => {
             </SelectContent>
           </Select>
 
-          {/* Year selector to allow adding/viewing per-year items */}
-          <Select value={selectedYear} onValueChange={onYearChange}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="ዓመት" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Years</SelectItem>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-              <SelectItem value="2026">2026</SelectItem>
-              <SelectItem value="2027">2027</SelectItem>
-              <SelectItem value="2028">2028</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Year input so user can type any year (or "all") */}
+          <div className="w-40">
+            <Input
+              placeholder='Type year (e.g. 2025) or "all"'
+              value={selectedYear}
+              onChange={(e) => handleYearInputChange(e.target.value)}
+              onBlur={applyYearToUrl}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  applyYearToUrl();
+                }
+              }}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Type a year to filter and press Enter or click away to apply.</p>
+          </div>
         </div>
         
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -673,18 +679,13 @@ const Todos = () => {
               
               <div className="space-y-2">
                 <Label htmlFor="year">Year</Label>
-                <Select value={formData.year} onValueChange={(value) => setFormData(prev => ({ ...prev, year: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2024">2024</SelectItem>
-                    <SelectItem value="2025">2025</SelectItem>
-                    <SelectItem value="2026">2026</SelectItem>
-                    <SelectItem value="2027">2027</SelectItem>
-                    <SelectItem value="2028">2028</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="year"
+                  placeholder='Type a year (e.g. 2026)'
+                  value={formData.year}
+                  onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">You can type any year here. If you leave it empty, the current year will be used.</p>
               </div>
               
               <div className="flex gap-2 pt-4">
