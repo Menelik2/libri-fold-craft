@@ -15,16 +15,21 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
   const [rotation, setRotation] = useState(0);
   const [downloading, setDownloading] = useState(false);
 
-  // Normalize URL: if relative (starts with "/"), prefix with origin
+  // Normalize URL: handle absolute, protocol-relative (//example.com) and relative paths
   const resolvedUrl = useMemo(() => {
     if (!pdfUrl) return '';
     try {
-      // If it's already an absolute URL, URL constructor will work
+      // If it's already an absolute URL, URL constructor will succeed
       new URL(pdfUrl);
       return pdfUrl;
     } catch {
+      // protocol-relative (starts with //) -> prefix current protocol
+      if (pdfUrl.startsWith('//')) {
+        return `${window.location.protocol}${pdfUrl}`;
+      }
       // Relative path -> resolve against current origin
-      return `${window.location.origin}${pdfUrl.startsWith('/') ? '' : '/'}${pdfUrl}`;
+      const sep = pdfUrl.startsWith('/') ? '' : '/';
+      return `${window.location.origin}${sep}${pdfUrl}`;
     }
   }, [pdfUrl]);
 
@@ -77,7 +82,9 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    // onOpenChange expects a callback receiving the new open state.
+    // Call onClose only when the dialog is being closed to satisfy typings and avoid unexpected calls.
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
         <DialogHeader className="flex-shrink-0 px-6 py-4 border-b">
           <div className="flex items-center justify-between w-full">
