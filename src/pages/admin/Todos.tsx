@@ -138,6 +138,10 @@ const Todos = () => {
   // selectedYear controls which year's items are shown/edited. 'all' shows everything.
   const [selectedYear, setSelectedYear] = useState<string>(initialSelectedYear);
 
+  // Signature names (editable)
+  const [signerName, setSignerName] = useState<string>('');
+  const [inspectorName, setInspectorName] = useState<string>('');
+
   const [formData, setFormData] = useState({
     detailedTask: '',
     measure: '',
@@ -865,12 +869,32 @@ const Todos = () => {
         <div className="space-y-4">
           <p className="font-medium">የዝግጅት ኃላፊ ፊርማ፡-</p>
           <div className="border-b border-black dark:border-gray-300 h-12"></div>
-          <p className="text-sm">ስም፡ _____________________</p>
+          <div className="mt-2">
+            <Label htmlFor="signerName">ስም</Label>
+            <Input
+              id="signerName"
+              placeholder="Type name here"
+              value={signerName}
+              onChange={(e) => setSignerName(e.target.value)}
+              className="mt-1"
+            />
+            <p className="text-sm mt-1">Entered: {signerName || '—'}</p>
+          </div>
         </div>
         <div className="space-y-4">
           <p className="font-medium">የእይታ ኃላፊ ፊርማ፡-</p>
           <div className="border-b border-black dark:border-gray-300 h-12"></div>
-          <p className="text-sm">ስም፡ _____________________</p>
+          <div className="mt-2">
+            <Label htmlFor="inspectorName">ስም</Label>
+            <Input
+              id="inspectorName"
+              placeholder="Type name here"
+              value={inspectorName}
+              onChange={(e) => setInspectorName(e.target.value)}
+              className="mt-1"
+            />
+            <p className="text-sm mt-1">Entered: {inspectorName || '—'}</p>
+          </div>
         </div>
       </div>
 
