@@ -15,21 +15,23 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
   const [rotation, setRotation] = useState(0);
   const [downloading, setDownloading] = useState(false);
 
-  // Normalize URL: handle absolute, protocol-relative (//example.com) and relative paths
+  // Resolve URL safely when running in the browser. During SSR `window` is undefined,
+  // so just return the incoming pdfUrl (relative paths will be resolved by the browser).
   const resolvedUrl = useMemo(() => {
     if (!pdfUrl) return '';
+    if (typeof window === 'undefined') {
+      // Avoid using window during server-side rendering; return the raw url.
+      return pdfUrl;
+    }
     try {
-      // If it's already an absolute URL, URL constructor will succeed
+      // If it's already an absolute URL, URL constructor will succeed.
+      // eslint-disable-next-line no-new
       new URL(pdfUrl);
       return pdfUrl;
     } catch {
-      // protocol-relative (starts with //) -> prefix current protocol
-      if (pdfUrl.startsWith('//')) {
-        return `${window.location.protocol}${pdfUrl}`;
-      }
-      // Relative path -> resolve against current origin
-      const sep = pdfUrl.startsWith('/') ? '' : '/';
-      return `${window.location.origin}${sep}${pdfUrl}`;
+      // Treat as relative path -> resolve against current origin
+      const prefix = pdfUrl.startsWith('/') ? '' : '/';
+      return `${window.location.origin}${prefix}${pdfUrl}`;
     }
   }, [pdfUrl]);
 
@@ -48,6 +50,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
 
   const handleDownload = async () => {
     if (!resolvedUrl) return;
+    if (typeof window === 'undefined') return;
     setDownloading(true);
     try {
       // Try fetching the file as a blob so downloads work even for same-origin relative paths
@@ -64,14 +67,16 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
       URL.revokeObjectURL(url);
     } catch (err) {
       // Fallback: open in new tab (user can manually download from the browser)
-      window.open(resolvedUrl, '_blank', 'noopener');
+      if (typeof window !== 'undefined') {
+        window.open(resolvedUrl, '_blank', 'noopener');
+      }
     } finally {
       setDownloading(false);
     }
   };
 
   const handleFullscreen = () => {
-    if (!resolvedUrl) return;
+    if (!resolvedUrl || typeof window === 'undefined') return;
     window.open(resolvedUrl, '_blank', 'noopener');
   };
 
@@ -82,9 +87,7 @@ const PDFViewer = ({ isOpen, onClose, pdfUrl, title }: PDFViewerProps) => {
   };
 
   return (
-    // onOpenChange expects a callback receiving the new open state.
-    // Call onClose only when the dialog is being closed to satisfy typings and avoid unexpected calls.
-    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl h-[90vh] p-0 flex flex-col">
         <DialogHeader className="flex-shrink-0 px-6 py-4 border-b">
           <div className="flex items-center justify-between w-full">
