@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, Search, Save } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -57,19 +57,7 @@ const removedCategories = [
   'Folding'
 ];
 
-// Signature info per year
-interface YearSignature {
-  organizer: { name: string; date: string; signature: string };
-  approver: { name: string; date: string; signature: string };
-}
-const getDefaultSignature = () => ({
-  organizer: { name: '', date: '', signature: '' },
-  approver: { name: '', date: '', signature: '' },
-});
-
-// Initial years
-const initialYears = ["2024", "2025", "2026"];
-
+// Mock data - in a real app, this would come from your database
 const mockTodos: Todo[] = [
   {
     id: 1,
@@ -136,22 +124,13 @@ function isRemovedCategory(task: string): boolean {
 
 const Todos = () => {
   const navigate = useNavigate();
-  const { year: urlYear } = useParams();
-
-  // Years state
-  const [years, setYears] = useState<string[]>(initialYears);
-  const [selectedYear, setSelectedYear] = useState<string>(urlYear || initialYears[0]);
-  // Signature state
-  const [yearSignatures, setYearSignatures] = useState<Record<string, YearSignature>>(
-    initialYears.reduce((acc, yr) => ({ ...acc, [yr]: getDefaultSignature() }), {})
-  );
-  // Tasks
+  const { year } = useParams();
   const [todos, setTodos] = useState<Todo[]>(mockTodos);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
-
+  
   const [formData, setFormData] = useState({
     detailedTask: '',
     measure: '',
@@ -165,58 +144,67 @@ const Todos = () => {
     approvedBudget: '',
     cost: '',
     income: '',
-    year: selectedYear
+    year: year || '2024'
   });
 
-  // Update form year when selectedYear changes
-  React.useEffect(() => {
-    setFormData(prev => ({ ...prev, year: selectedYear }));
-  }, [selectedYear]);
-
-  // Add new year
-  const handleAddYear = () => {
-    const nextYear = (parseInt(years[years.length - 1]) + 1).toString();
-    setYears(prev => [...prev, nextYear]);
-    setYearSignatures(prev => ({ ...prev, [nextYear]: getDefaultSignature() }));
-    setSelectedYear(nextYear);
-  };
-
-  // Save tasks handler (simulate saving to server)
-  const handleSaveTasks = () => {
-    toast({
-      title: "Tasks Saved",
-      description: `Tasks for year ${selectedYear} have been saved.`,
-      variant: "success"
+  // Filter todos based on year, search term, status, and exclude removed categories
+  const filteredTodos = todos
+    .filter(todo => !isRemovedCategory(todo.detailedTask))
+    .filter(todo => {
+      const matchesYear = !year || year === 'all' || todo.year === year;
+      const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || 
+                           (statusFilter === 'completed' && todo.completed) ||
+                           (statusFilter === 'pending' && !todo.completed);
+      return matchesYear && matchesSearch && matchesStatus;
     });
+
+  const getYearDisplayName = (yr: string) => {
+    if (yr === 'all') return 'All Years';
+    return yr;
   };
 
-  // Add/Edit task
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Prevent adding tasks matching removed categories
     if (isRemovedCategory(formData.detailedTask)) {
       toast({
         title: "Invalid Category",
-        description: "Cannot add Poetry, Tradition, Reading, Drama, Folding tasks.",
+        description: "You cannot add a task with Poetry, Tradition, Reading, Drama, or Folding in the name.",
         variant: "destructive"
       });
       return;
     }
+    
     if (editingTodo) {
-      setTodos(prev => prev.map(todo =>
-        todo.id === editingTodo.id ? { ...todo, ...formData } : todo
+      // Update existing todo
+      setTodos(prev => prev.map(todo => 
+        todo.id === editingTodo.id 
+          ? { ...todo, ...formData }
+          : todo
       ));
-      toast({ title: "Todo Updated", description: "Task updated." });
+      toast({
+        title: "Todo Updated",
+        description: "Your Annual Arts Plan item has been updated successfully.",
+      });
       setEditingTodo(null);
     } else {
-      setTodos(prev => [...prev, {
+      // Add new todo
+      const newTodo: Todo = {
         id: Date.now(),
         ...formData,
         completed: false,
-        createdAt: new Date().toISOString().split('T')[0],
-        year: selectedYear
-      }]);
-      toast({ title: "Task Added", description: "Task added for year " + selectedYear });
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      setTodos(prev => [...prev, newTodo]);
+      toast({
+        title: "Todo Added",
+        description: "New Annual Arts Plan item has been added successfully.",
+      });
     }
+    
     setFormData({
       detailedTask: '',
       measure: '',
@@ -230,43 +218,42 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      year: selectedYear
+      year: year || '2024'
     });
     setIsAddDialogOpen(false);
   };
 
-  // Signature update
-  const handleSignatureChange = (role: keyof YearSignature, field: keyof YearSignature['organizer'], value: string) => {
-    setYearSignatures(prev => ({
-      ...prev,
-      [selectedYear]: {
-        ...prev[selectedYear],
-        [role]: { ...prev[selectedYear][role], [field]: value }
-      }
-    }));
+  const toggleComplete = (id: number) => {
+    setTodos(prev => prev.map(todo => 
+      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    ));
   };
 
-  // Filter todos for selected year
-  const filteredTodos = todos
-    .filter(todo => todo.year === selectedYear)
-    .filter(todo => !isRemovedCategory(todo.detailedTask))
-    .filter(todo => {
-      const matchesSearch = todo.detailedTask.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        todo.workWith.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' ||
-        (statusFilter === 'completed' && todo.completed) ||
-        (statusFilter === 'pending' && !todo.completed);
-      return matchesSearch && matchesStatus;
+  const deleteTodo = (id: number) => {
+    setTodos(prev => prev.filter(todo => todo.id !== id));
+    toast({
+      title: "Todo Deleted",
+      description: "Annual Arts Plan item has been removed.",
     });
-
-  const getYearDisplayName = (yr: string) => {
-    if (yr === 'all') return 'All Years';
-    return yr;
   };
 
   const openEditDialog = (todo: Todo) => {
     setEditingTodo(todo);
-    setFormData({ ...todo });
+    setFormData({
+      detailedTask: todo.detailedTask,
+      measure: todo.measure,
+      quantity: todo.quantity,
+      workWith: todo.workWith,
+      firstQuarter: todo.firstQuarter,
+      secondQuarter: todo.secondQuarter,
+      thirdQuarter: todo.thirdQuarter,
+      fourthQuarter: todo.fourthQuarter,
+      budgetRequested: todo.budgetRequested,
+      approvedBudget: todo.approvedBudget,
+      cost: todo.cost,
+      income: todo.income,
+      year: todo.year
+    });
     setIsAddDialogOpen(true);
   };
 
@@ -286,109 +273,28 @@ const Todos = () => {
       approvedBudget: '',
       cost: '',
       income: '',
-      year: selectedYear
+      year: year || '2024'
     });
   };
 
   return (
     <div className="max-w-full mx-auto p-6 bg-white dark:bg-card min-h-screen overflow-x-auto">
-
-      {/* Top bar for year selection and actions */}
-      <div className="flex gap-4 mb-6">
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-blue-600 text-white">
-          <Plus className="h-4 w-4 mr-2" /> Add New Task
-        </Button>
-        <Button onClick={handleSaveTasks} className="bg-green-600 text-white">
-          <Save className="h-4 w-4 mr-2" /> Save Tasks
-        </Button>
-        <div className="flex-1"></div>
-        <Button onClick={handleAddYear} className="bg-green-600 text-white">
-          <Plus className="h-4 w-4 mr-2" /> Add Year
-        </Button>
-      </div>
-      {/* Year Overview */}
-      <div className="mb-4">
-        <h2 className="text-lg font-bold">Year Overview</h2>
-        <div className="flex gap-2 py-2">
-          {years.map(yr => (
-            <Button
-              key={yr}
-              variant={selectedYear === yr ? "default" : "outline"}
-              onClick={() => setSelectedYear(yr)}
-              className="rounded-lg min-w-[80px]"
-            >
-              {yr}
-            </Button>
-          ))}
-        </div>
-      </div>
-      {/* Signature Section */}
-      <div className="grid grid-cols-2 gap-8 mb-8">
-        {/* Organizer */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-bold text-lg mb-2">የዝግጅት ሰራተኛ፡-</h3>
-          <Label>Name:</Label>
-          <Input
-            value={yearSignatures[selectedYear]?.organizer.name || ''}
-            onChange={e => handleSignatureChange('organizer', 'name', e.target.value)}
-            className="mb-3"
-            placeholder="Enter name"
-          />
-          <Label>ሽም፡-</Label>
-          <Input
-            value={yearSignatures[selectedYear]?.organizer.signature || ''}
-            onChange={e => handleSignatureChange('organizer', 'signature', e.target.value)}
-            className="mb-3"
-            placeholder="Signature line"
-          />
-          <Label>ቀን፡-</Label>
-          <Input
-            type="date"
-            value={yearSignatures[selectedYear]?.organizer.date || ''}
-            onChange={e => handleSignatureChange('organizer', 'date', e.target.value)}
-            className="mb-3"
-          />
-        </div>
-        {/* Approver */}
-        <div className="border rounded-lg p-4">
-          <h3 className="font-bold text-lg mb-2">የቅርብ ሰራተኛ፡-</h3>
-          <Label>Name:</Label>
-          <Input
-            value={yearSignatures[selectedYear]?.approver.name || ''}
-            onChange={e => handleSignatureChange('approver', 'name', e.target.value)}
-            className="mb-3"
-            placeholder="Enter name"
-          />
-          <Label>ሽም፡-</Label>
-          <Input
-            value={yearSignatures[selectedYear]?.approver.signature || ''}
-            onChange={e => handleSignatureChange('approver', 'signature', e.target.value)}
-            className="mb-3"
-            placeholder="Signature line"
-          />
-          <Label>ቀን፡-</Label>
-          <Input
-            type="date"
-            value={yearSignatures[selectedYear]?.approver.date || ''}
-            onChange={e => handleSignatureChange('approver', 'date', e.target.value)}
-            className="mb-3"
-          />
-        </div>
-      </div>
-
-      {/* Existing Document Header, Controls, Table */}
+      {/* Document Header */}
       <div className="border-2 border-black dark:border-gray-300 p-6 mb-6 bg-gray-50 dark:bg-card">
         <div className="text-center mb-4">
           <h1 className="text-xl font-bold mb-2">የባህርዳር ፈ/ገ/ቅ/ጊዮርጊስ ካ/ሰ/ት/ ቤት</h1>
           <h2 className="text-lg font-semibold">የዓመታዊ የማነ ጥበብ ዝግጅት ሰንጠረዥ</h2>
-          <p className="text-sm mt-2">{getYearDisplayName(selectedYear)} - {new Date().getFullYear()}</p>
+          <p className="text-sm mt-2">{getYearDisplayName(year || 'all')} - {new Date().getFullYear()}</p>
         </div>
+        
         <div className="flex justify-between text-sm">
           <div>ዓመት: ____________</div>
           <div>ቀን: {new Date().toLocaleDateString()}</div>
           <div>ገጽ: 1 ከ 1</div>
         </div>
       </div>
+
+      {/* Controls */}
       <div className="flex justify-between items-center mb-4">
         <div className="flex gap-4">
           <div className="relative">
@@ -411,13 +317,374 @@ const Todos = () => {
             </SelectContent>
           </Select>
         </div>
+        
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              አዲስ ዝግጅት ጨምር
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
+              </DialogTitle>
+              <DialogDescription>
+                የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
+                <span className="block text-xs text-destructive mt-1">
+                  * Poetry, Tradition, Reading, Drama, and Folding related tasks are not allowed.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="detailedTask">Detailed Task</Label>
+                  <Input
+                    id="detailedTask"
+                    value={formData.detailedTask}
+                    onChange={(e) => setFormData(prev => ({ ...prev, detailedTask: e.target.value }))}
+                    placeholder="Enter detailed task"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="measure">Measure</Label>
+                  <Input
+                    id="measure"
+                    value={formData.measure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, measure: e.target.value }))}
+                    placeholder="Enter measure"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                    placeholder="Enter quantity"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="workWith">Who will we work with?</Label>
+                  <Input
+                    id="workWith"
+                    value={formData.workWith}
+                    onChange={(e) => setFormData(prev => ({ ...prev, workWith: e.target.value }))}
+                    placeholder="Enter collaboration partners"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quarter selections */}
+              <div className="space-y-4">
+                <Label>Select months for each quarter:</Label>
+                
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">1st Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="july"
+                          checked={formData.firstQuarter.july}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, july: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="july" className="text-sm">July</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="august"
+                          checked={formData.firstQuarter.august}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, august: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="august" className="text-sm">August</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="september"
+                          checked={formData.firstQuarter.september}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, september: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="september" className="text-sm">September</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">2nd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="october"
+                          checked={formData.secondQuarter.october}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, october: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="october" className="text-sm">October</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="november"
+                          checked={formData.secondQuarter.november}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, november: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="november" className="text-sm">November</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="december"
+                          checked={formData.secondQuarter.december}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, december: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="december" className="text-sm">December</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">3rd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="january"
+                          checked={formData.thirdQuarter.january}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, january: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="january" className="text-sm">January</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="february"
+                          checked={formData.thirdQuarter.february}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, february: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="february" className="text-sm">February</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="march"
+                          checked={formData.thirdQuarter.march}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, march: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="march" className="text-sm">March</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">4th Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="april"
+                          checked={formData.fourthQuarter.april}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, april: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="april" className="text-sm">April</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="may"
+                          checked={formData.fourthQuarter.may}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, may: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="may" className="text-sm">May</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="june"
+                          checked={formData.fourthQuarter.june}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, june: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="june" className="text-sm">June</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budgetRequested">Budget Requested by Department</Label>
+                  <Input
+                    id="budgetRequested"
+                    value={formData.budgetRequested}
+                    onChange={(e) => setFormData(prev => ({ ...prev, budgetRequested: e.target.value }))}
+                    placeholder="Enter budget requested"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="approvedBudget">Approved Budget</Label>
+                  <Input
+                    id="approvedBudget"
+                    value={formData.approvedBudget}
+                    onChange={(e) => setFormData(prev => ({ ...prev, approvedBudget: e.target.value }))}
+                    placeholder="Enter approved budget"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost</Label>
+                  <Input
+                    id="cost"
+                    value={formData.cost}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
+                    placeholder="Enter cost"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="income">Income</Label>
+                  <Input
+                    id="income"
+                    value={formData.income}
+                    onChange={(e) => setFormData(prev => ({ ...prev, income: e.target.value }))}
+                    placeholder="Enter income"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Select value={formData.year} onValueChange={(value) => setFormData(prev => ({ ...prev, year: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024">2024</SelectItem>
+                    <SelectItem value="2025">2025</SelectItem>
+                    <SelectItem value="2026">2026</SelectItem>
+                    <SelectItem value="2027">2027</SelectItem>
+                    <SelectItem value="2028">2028</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" className="flex-1">
+                  {editingTodo ? 'Update' : 'Add'}
+                </Button>
+                <Button type="button" variant="outline" onClick={closeDialog}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Official Form Table */}
       <div className="border-2 border-black dark:border-gray-300 overflow-x-auto">
         <table className="w-full border-collapse min-w-[1600px]">
           <thead>
-            {/* ... (table head unchanged) ... */}
+            <tr className="bg-white dark:bg-card">
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-12" rowSpan={2}>No</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium min-w-[200px]" rowSpan={2}>detailed task</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Measure</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-20" rowSpan={2}>Quantity</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Who will we work with?</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>1st quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>2nd quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>3rd quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={3}>4th quarter</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-24" rowSpan={2}>The budget requested by the department</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium" colSpan={2}>Approved budget</th>
+              <th className="border border-black dark:border-gray-300 p-2 text-sm font-medium w-32" rowSpan={2}>Actions</th>
+            </tr>
+            <tr className="bg-yellow-200 dark:bg-yellow-800">
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">July</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">August</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">September</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">October</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">November</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">December</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">January</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">February</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">March</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">April</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">May</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs">June</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs w-20">Cost</th>
+              <th className="border border-black dark:border-gray-300 p-1 text-xs w-20">Income</th>
+            </tr>
           </thead>
           <tbody>
             {filteredTodos.map((todo, index) => (
@@ -502,7 +769,7 @@ const Todos = () => {
                       variant={todo.completed ? "default" : "outline"}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setTodos(prev => prev.map(t => t.id === todo.id ? { ...t, completed: !t.completed } : t));
+                        toggleComplete(todo.id);
                       }}
                       className="h-7 w-7 p-0"
                       title={todo.completed ? "Mark as incomplete" : "Mark as complete"}
@@ -527,7 +794,7 @@ const Todos = () => {
                       onClick={(e) => {
                         e.stopPropagation();
                         if (confirm("Are you sure you want to delete this task?")) {
-                          setTodos(prev => prev.filter(t => t.id !== todo.id));
+                          deleteTodo(todo.id);
                         }
                       }}
                       className="h-7 w-7 p-0"
@@ -541,6 +808,20 @@ const Todos = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Signature Section */}
+      <div className="mt-8 grid grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <p className="font-medium">የዝግጅት ኃላፊ ፊርማ፡-</p>
+          <div className="border-b border-black dark:border-gray-300 h-12"></div>
+          <p className="text-sm">ስም፡ _____________________</p>
+        </div>
+        <div className="space-y-4">
+          <p className="font-medium">የእይታ ኃላፊ ፊርማ፡-</p>
+          <div className="border-b border-black dark:border-gray-300 h-12"></div>
+          <p className="text-sm">ስም፡ _____________________</p>
+        </div>
       </div>
 
       {/* Empty State */}
@@ -560,46 +841,6 @@ const Todos = () => {
           </Button>
         </div>
       )}
-
-      {/* Add/Edit Task Dialog */}
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
-            </DialogTitle>
-            <DialogDescription>
-              የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
-              <span className="block text-xs text-destructive mt-1">
-                * Poetry, Tradition, Reading, Drama, and Folding related tasks are not allowed.
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* ... (form fields as before, use selectedYear for year field) ... */}
-            <div className="space-y-2">
-              <Label htmlFor="year">Year</Label>
-              <Select value={formData.year} onValueChange={(value) => setFormData(prev => ({ ...prev, year: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select year" />
-                </SelectTrigger>
-                <SelectContent>
-                  {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {/* ... (rest of form) ... */}
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" className="flex-1">
-                {editingTodo ? 'Update' : 'Add'}
-              </Button>
-              <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
