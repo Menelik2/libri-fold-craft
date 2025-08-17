@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, Search, Download } from 'lucide-react';
+import { CheckCircle2, Circle, Calendar, MapPin, FileText, Plus, Edit, Trash2, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -153,8 +153,6 @@ const Todos = () => {
     income: '',
     year: initialSelectedYear
   });
-
-  const [exporting, setExporting] = useState(false);
 
   // keep selectedYear in sync with url param when route changes externally
   useEffect(() => {
@@ -318,63 +316,8 @@ const Todos = () => {
     }
   };
 
-  // Export the form container to PDF (landscape A4)
-  const exportToPdf = async () => {
-    const element = document.getElementById('todos-form');
-    if (!element) {
-      toast({ title: "Export failed", description: "Could not find the form element to export.", variant: "destructive" });
-      return;
-    }
-
-    try {
-      setExporting(true);
-      const { default: html2canvas } = await import('html2canvas');
-      const { jsPDF } = await import('jspdf');
-
-      // Render at higher scale for better quality
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        useCORS: true,
-        scrollY: -window.scrollY
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-
-      // Create PDF in landscape A4
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-
-      // Fit the image inside the PDF while keeping aspect ratio
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgScaledWidth = imgWidth * ratio;
-      const imgScaledHeight = imgHeight * ratio;
-
-      // Center vertically if there's leftover space
-      const x = (pdfWidth - imgScaledWidth) / 2;
-      const y = (pdfHeight - imgScaledHeight) / 2;
-
-      pdf.addImage(imgData, 'PNG', x, y, imgScaledWidth, imgScaledHeight);
-      pdf.save(`annual-arts-plan-${selectedYear || 'all'}.pdf`);
-      toast({ title: "Export complete", description: "PDF downloaded successfully." });
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Export failed", description: "An error occurred while generating the PDF.", variant: "destructive" });
-    } finally {
-      setExporting(false);
-    }
-  };
-
   return (
-    <div id="todos-form" className="max-w-full mx-auto p-6 bg-white dark:bg-card min-h-screen overflow-x-auto">
+    <div className="max-w-full mx-auto p-6 bg-white dark:bg-card min-h-screen overflow-x-auto">
       {/* Document Header */}
       <div className="border-2 border-black dark:border-gray-300 p-6 mb-6 bg-gray-50 dark:bg-card">
         <div className="text-center mb-4">
@@ -430,339 +373,332 @@ const Todos = () => {
           </div>
         </div>
         
-        <div className="flex gap-2">
-          <Button onClick={exportToPdf} disabled={exporting} variant="outline" className="gap-2">
-            <Download className="h-4 w-4" />
-            {exporting ? 'Exporting...' : 'Export to PDF'}
-          </Button>
-
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                አዲስ ዝግጅት ጨምር
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
-                </DialogTitle>
-                <DialogDescription>
-                  የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
-                  <span className="block text-xs text-destructive mt-1">
-                    * Poetry, Tradition, Reading, Drama, and Folding related tasks are not allowed.
-                  </span>
-                </DialogDescription>
-              </DialogHeader>
-              
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="detailedTask">Detailed Task</Label>
-                    <Input
-                      id="detailedTask"
-                      value={formData.detailedTask}
-                      onChange={(e) => setFormData(prev => ({ ...prev, detailedTask: e.target.value }))}
-                      placeholder="Enter detailed task"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="measure">Measure</Label>
-                    <Input
-                      id="measure"
-                      value={formData.measure}
-                      onChange={(e) => setFormData(prev => ({ ...prev, measure: e.target.value }))}
-                      placeholder="Enter measure"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity</Label>
-                    <Input
-                      id="quantity"
-                      value={formData.quantity}
-                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-                      placeholder="Enter quantity"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="workWith">Who will we work with?</Label>
-                    <Input
-                      id="workWith"
-                      value={formData.workWith}
-                      onChange={(e) => setFormData(prev => ({ ...prev, workWith: e.target.value }))}
-                      placeholder="Enter collaboration partners"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Quarter selections */}
-                <div className="space-y-4">
-                  <Label>Select months for each quarter:</Label>
-                  
-                  <div className="grid grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">1st Quarter</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="july"
-                            checked={formData.firstQuarter.july}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                firstQuarter: { ...prev.firstQuarter, july: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="july" className="text-sm">July</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="august"
-                            checked={formData.firstQuarter.august}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                firstQuarter: { ...prev.firstQuarter, august: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="august" className="text-sm">August</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="september"
-                            checked={formData.firstQuarter.september}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                firstQuarter: { ...prev.firstQuarter, september: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="september" className="text-sm">September</Label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">2nd Quarter</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="october"
-                            checked={formData.secondQuarter.october}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                secondQuarter: { ...prev.secondQuarter, october: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="october" className="text-sm">October</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="november"
-                            checked={formData.secondQuarter.november}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                secondQuarter: { ...prev.secondQuarter, november: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="november" className="text-sm">November</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="december"
-                            checked={formData.secondQuarter.december}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                secondQuarter: { ...prev.secondQuarter, december: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="december" className="text-sm">December</Label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">3rd Quarter</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="january"
-                            checked={formData.thirdQuarter.january}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                thirdQuarter: { ...prev.thirdQuarter, january: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="january" className="text-sm">January</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="february"
-                            checked={formData.thirdQuarter.february}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                thirdQuarter: { ...prev.thirdQuarter, february: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="february" className="text-sm">February</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="march"
-                            checked={formData.thirdQuarter.march}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                thirdQuarter: { ...prev.thirdQuarter, march: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="march" className="text-sm">March</Label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">4th Quarter</Label>
-                      <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="april"
-                            checked={formData.fourthQuarter.april}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                fourthQuarter: { ...prev.fourthQuarter, april: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="april" className="text-sm">April</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="may"
-                            checked={formData.fourthQuarter.may}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                fourthQuarter: { ...prev.fourthQuarter, may: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="may" className="text-sm">May</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Checkbox 
-                            id="june"
-                            checked={formData.fourthQuarter.june}
-                            onCheckedChange={(checked) => 
-                              setFormData(prev => ({ 
-                                ...prev, 
-                                fourthQuarter: { ...prev.fourthQuarter, june: checked as boolean }
-                              }))
-                            }
-                          />
-                          <Label htmlFor="june" className="text-sm">June</Label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="budgetRequested">Budget Requested by Department</Label>
-                    <Input
-                      id="budgetRequested"
-                      value={formData.budgetRequested}
-                      onChange={(e) => setFormData(prev => ({ ...prev, budgetRequested: e.target.value }))}
-                      placeholder="Enter budget requested"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="approvedBudget">Approved Budget</Label>
-                    <Input
-                      id="approvedBudget"
-                      value={formData.approvedBudget}
-                      onChange={(e) => setFormData(prev => ({ ...prev, approvedBudget: e.target.value }))}
-                      placeholder="Enter approved budget"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="cost">Cost</Label>
-                    <Input
-                      id="cost"
-                      value={formData.cost}
-                      onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
-                      placeholder="Enter cost"
-                      required
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="income">Income</Label>
-                    <Input
-                      id="income"
-                      value={formData.income}
-                      onChange={(e) => setFormData(prev => ({ ...prev, income: e.target.value }))}
-                      placeholder="Enter income"
-                      required
-                    />
-                  </div>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              አዲስ ዝግጅት ጨምር
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {editingTodo ? 'ዝግጅት አርም' : 'አዲስ ዝግጅት ጨምር'}
+              </DialogTitle>
+              <DialogDescription>
+                የዓመታዊ የማነ ጥበብ ዝግጅት አዲስ እንቅስቃሴ ይፍጠሩ።
+                <span className="block text-xs text-destructive mt-1">
+                  * Poetry, Tradition, Reading, Drama, and Folding related tasks are not allowed.
+                </span>
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="detailedTask">Detailed Task</Label>
+                  <Input
+                    id="detailedTask"
+                    value={formData.detailedTask}
+                    onChange={(e) => setFormData(prev => ({ ...prev, detailedTask: e.target.value }))}
+                    placeholder="Enter detailed task"
+                    required
+                  />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="year">Year</Label>
+                  <Label htmlFor="measure">Measure</Label>
                   <Input
-                    id="year"
-                    placeholder='Type a year (e.g. 2026)'
-                    value={formData.year}
-                    onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                    id="measure"
+                    value={formData.measure}
+                    onChange={(e) => setFormData(prev => ({ ...prev, measure: e.target.value }))}
+                    placeholder="Enter measure"
+                    required
                   />
-                  <p className="text-xs text-muted-foreground mt-1">You can type any year here. If you leave it empty, the current year will be used.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input
+                    id="quantity"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                    placeholder="Enter quantity"
+                    required
+                  />
                 </div>
                 
-                <div className="flex gap-2 pt-4">
-                  <Button type="submit" className="flex-1">
-                    {editingTodo ? 'Update' : 'Add'}
-                  </Button>
-                  <Button type="button" variant="outline" onClick={closeDialog}>
-                    Cancel
-                  </Button>
+                <div className="space-y-2">
+                  <Label htmlFor="workWith">Who will we work with?</Label>
+                  <Input
+                    id="workWith"
+                    value={formData.workWith}
+                    onChange={(e) => setFormData(prev => ({ ...prev, workWith: e.target.value }))}
+                    placeholder="Enter collaboration partners"
+                    required
+                  />
                 </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
+              </div>
+
+              {/* Quarter selections */}
+              <div className="space-y-4">
+                <Label>Select months for each quarter:</Label>
+                
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">1st Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="july"
+                          checked={formData.firstQuarter.july}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, july: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="july" className="text-sm">July</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="august"
+                          checked={formData.firstQuarter.august}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, august: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="august" className="text-sm">August</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="september"
+                          checked={formData.firstQuarter.september}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              firstQuarter: { ...prev.firstQuarter, september: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="september" className="text-sm">September</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">2nd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="october"
+                          checked={formData.secondQuarter.october}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, october: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="october" className="text-sm">October</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="november"
+                          checked={formData.secondQuarter.november}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, november: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="november" className="text-sm">November</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="december"
+                          checked={formData.secondQuarter.december}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              secondQuarter: { ...prev.secondQuarter, december: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="december" className="text-sm">December</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">3rd Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="january"
+                          checked={formData.thirdQuarter.january}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, january: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="january" className="text-sm">January</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="february"
+                          checked={formData.thirdQuarter.february}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, february: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="february" className="text-sm">February</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="march"
+                          checked={formData.thirdQuarter.march}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              thirdQuarter: { ...prev.thirdQuarter, march: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="march" className="text-sm">March</Label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">4th Quarter</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="april"
+                          checked={formData.fourthQuarter.april}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, april: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="april" className="text-sm">April</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="may"
+                          checked={formData.fourthQuarter.may}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, may: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="may" className="text-sm">May</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox 
+                          id="june"
+                          checked={formData.fourthQuarter.june}
+                          onCheckedChange={(checked) => 
+                            setFormData(prev => ({ 
+                              ...prev, 
+                              fourthQuarter: { ...prev.fourthQuarter, june: checked as boolean }
+                            }))
+                          }
+                        />
+                        <Label htmlFor="june" className="text-sm">June</Label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budgetRequested">Budget Requested by Department</Label>
+                  <Input
+                    id="budgetRequested"
+                    value={formData.budgetRequested}
+                    onChange={(e) => setFormData(prev => ({ ...prev, budgetRequested: e.target.value }))}
+                    placeholder="Enter budget requested"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="approvedBudget">Approved Budget</Label>
+                  <Input
+                    id="approvedBudget"
+                    value={formData.approvedBudget}
+                    onChange={(e) => setFormData(prev => ({ ...prev, approvedBudget: e.target.value }))}
+                    placeholder="Enter approved budget"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cost">Cost</Label>
+                  <Input
+                    id="cost"
+                    value={formData.cost}
+                    onChange={(e) => setFormData(prev => ({ ...prev, cost: e.target.value }))}
+                    placeholder="Enter cost"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="income">Income</Label>
+                  <Input
+                    id="income"
+                    value={formData.income}
+                    onChange={(e) => setFormData(prev => ({ ...prev, income: e.target.value }))}
+                    placeholder="Enter income"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="year">Year</Label>
+                <Input
+                  id="year"
+                  placeholder='Type a year (e.g. 2026)'
+                  value={formData.year}
+                  onChange={(e) => setFormData(prev => ({ ...prev, year: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground mt-1">You can type any year here. If you leave it empty, the current year will be used.</p>
+              </div>
+              
+              <div className="flex gap-2 pt-4">
+                <Button type="submit" className="flex-1">
+                  {editingTodo ? 'Update' : 'Add'}
+                </Button>
+                <Button type="button" variant="outline" onClick={closeDialog}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Official Form Table */}
